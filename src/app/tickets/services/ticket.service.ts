@@ -589,6 +589,16 @@ export class TicketService {
     };
   }
 
+  /**
+   * RF-66: Permite al motor de colas adelantar un ticket modificando su timestamp.
+   * Usado para implementar saltos de cola (jump to front).
+   */
+  updateTicketCreatedAt(id: string, newDate: Date): void {
+    this._tickets.update(list =>
+      list.map(t => t.id === id ? { ...t, createdAt: newDate } : t)
+    );
+  }
+
   private _findById(id: string): Ticket | undefined {
     return this._tickets().find(t => t.id === id);
   }
