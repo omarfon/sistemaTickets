@@ -1,42 +1,60 @@
-<div class="space-y-6">
+<!-- RF-63 / RF-64 / RF-71 / RF-73 — Reglas de atención, SLA y líneas de cola -->
+<div class="flex flex-col gap-6">
 
-  <!-- ── Encabezado ──────────────────────────────────────────────────────── -->
+  <!-- ── Cabecera ─────────────────────────────────────────────────────────── -->
   <div class="flex flex-wrap items-center justify-between gap-4">
     <div>
-      <h1 class="text-2xl font-bold text-gray-900">📋 Reglas y SLA</h1>
-      <p class="mt-0.5 text-sm text-gray-500">RF-63 / RF-64 / RF-71 / RF-73 — Reglas de atención, SLA y líneas de cola</p>
+      <h1 class="text-2xl font-bold text-gray-900">Reglas y SLA</h1>
+      <p class="mt-1 text-sm text-gray-500">RF-63 / RF-64 / RF-71 / RF-73 — Reglas de cola, SLA por prioridad y líneas de atención</p>
     </div>
-    @if (tab() === 'rules') {
-      <button
-        type="button"
-        (click)="openNewRuleForm()"
-        class="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700"
-      >
-        ➕ Nueva regla
-      </button>
-    }
+
+    <div class="flex flex-wrap items-center gap-3" role="status" aria-live="polite">
+      <div class="flex flex-col items-center rounded-xl bg-indigo-50 px-5 py-3 ring-1 ring-indigo-200">
+        <span class="text-2xl font-bold text-indigo-700">{{ rules().length }}</span>
+        <span class="text-xs font-medium text-indigo-600">Reglas</span>
+      </div>
+      <div class="flex flex-col items-center rounded-xl bg-amber-50 px-5 py-3 ring-1 ring-amber-200">
+        <span class="text-2xl font-bold text-amber-700">{{ slaConfigs().length }}</span>
+        <span class="text-xs font-medium text-amber-600">SLA config.</span>
+      </div>
+      <div class="flex flex-col items-center rounded-xl bg-emerald-50 px-5 py-3 ring-1 ring-emerald-200">
+        <span class="text-2xl font-bold text-emerald-700">{{ queueLines().length }}</span>
+        <span class="text-xs font-medium text-emerald-600">Líneas</span>
+      </div>
+      @if (tab() === 'rules') {
+        <button
+          type="button"
+          (click)="openNewRuleForm()"
+          class="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700"
+        >
+          ➕ Nueva regla
+        </button>
+      }
+    </div>
   </div>
 
-  <!-- ── Tabs ─────────────────────────────────────────────────────────────── -->
-  <div class="rounded-2xl bg-white shadow-sm ring-1 ring-gray-200">
-    <div class="flex gap-6 border-b border-gray-100 px-6 pt-1">
+  <!-- ── Sección principal con tabs ──────────────────────────────────────── -->
+  <section class="rounded-2xl bg-white shadow-sm ring-1 ring-gray-200">
+
+    <!-- Tab nav -->
+    <div class="flex gap-6 overflow-x-auto border-b border-gray-100 px-6 pt-1">
       <button type="button" (click)="tab.set('rules')"
-        class="py-3 text-sm transition-colors" [class]="tabClass('rules')">
+        class="shrink-0 py-3 text-sm transition-colors" [class]="tabClass('rules')">
         📋 Reglas de cola
       </button>
       <button type="button" (click)="tab.set('sla')"
-        class="py-3 text-sm transition-colors" [class]="tabClass('sla')">
+        class="shrink-0 py-3 text-sm transition-colors" [class]="tabClass('sla')">
         ⏱️ SLA por prioridad
       </button>
       <button type="button" (click)="tab.set('lines')"
-        class="py-3 text-sm transition-colors" [class]="tabClass('lines')">
+        class="shrink-0 py-3 text-sm transition-colors" [class]="tabClass('lines')">
         🗂️ Líneas de atención
       </button>
     </div>
 
     <div class="p-6">
 
-      <!-- ── Tab: Reglas de cola ────────────────────────────────────────── -->
+      <!-- ── Tab: Reglas de cola (RF-63/RF-73) ─────────────────────────── -->
       @if (tab() === 'rules') {
 
         <!-- Formulario nueva regla -->
@@ -79,11 +97,11 @@
             }
             <div class="mt-4 flex justify-end gap-2">
               <button type="button" (click)="showNewRuleForm.set(false)"
-                class="rounded-xl px-4 py-2 text-sm text-gray-600 hover:bg-gray-100">
+                class="rounded-xl px-4 py-2 text-sm text-gray-600 transition-colors hover:bg-gray-100">
                 Cancelar
               </button>
               <button type="button" (click)="submitNewRule()"
-                class="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
+                class="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700">
                 ✅ Crear regla
               </button>
             </div>
@@ -91,80 +109,86 @@
         }
 
         <!-- Lista de reglas -->
-        <div class="space-y-3">
-          @for (rule of rules(); track rule.id) {
-            <div class="flex items-start justify-between gap-4 rounded-2xl p-4 ring-1 transition-all"
-                 [class.bg-indigo-50]="activeRuleId() === rule.id"
-                 [class.ring-indigo-300]="activeRuleId() === rule.id"
-                 [class.bg-white]="activeRuleId() !== rule.id"
-                 [class.ring-gray-200]="activeRuleId() !== rule.id">
-              <div class="flex items-start gap-3">
-                <span class="mt-0.5 text-2xl">{{ ruleIcons[rule.type] }}</span>
-                <div>
-                  <div class="flex items-center gap-2">
-                    <p class="font-semibold text-gray-900">{{ rule.name }}</p>
-                    @if (activeRuleId() === rule.id) {
-                      <span class="rounded-full bg-indigo-600 px-2 py-0.5 text-[10px] font-bold text-white">
-                        ACTIVA GLOBALMENTE
-                      </span>
+        @if (rules().length === 0) {
+          <div class="flex flex-col items-center justify-center py-20" role="status">
+            <span class="mb-4 text-5xl" aria-hidden="true">📋</span>
+            <p class="text-base font-medium text-gray-400">No hay reglas configuradas</p>
+          </div>
+        } @else {
+          <ul class="flex flex-col gap-3" aria-label="Lista de reglas">
+            @for (rule of rules(); track rule.id) {
+              <li class="flex items-start justify-between gap-4 rounded-2xl p-4 ring-1 transition-all"
+                   [class.bg-indigo-50]="activeRuleId() === rule.id"
+                   [class.ring-indigo-300]="activeRuleId() === rule.id"
+                   [class.bg-white]="activeRuleId() !== rule.id"
+                   [class.ring-gray-200]="activeRuleId() !== rule.id">
+                <div class="flex items-start gap-3">
+                  <span class="mt-0.5 text-2xl" aria-hidden="true">{{ ruleIcons[rule.type] }}</span>
+                  <div>
+                    <div class="flex flex-wrap items-center gap-2">
+                      <p class="font-semibold text-gray-900">{{ rule.name }}</p>
+                      @if (activeRuleId() === rule.id) {
+                        <span class="rounded-full bg-indigo-600 px-2 py-0.5 text-[10px] font-bold text-white">
+                          ACTIVA GLOBALMENTE
+                        </span>
+                      }
+                      @if (!rule.active) {
+                        <span class="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] text-gray-500">
+                          Desactivada
+                        </span>
+                      }
+                    </div>
+                    <p class="text-xs text-gray-500">{{ ruleLabels[rule.type] }} · {{ ruleDescriptions[rule.type] }}</p>
+                    @if (rule.type === QueueRuleType.Interleaved) {
+                      <p class="mt-1 text-xs text-indigo-700">
+                        {{ rule.normalSlots }} normales + {{ rule.preferentialSlots }} preferenciales por ciclo
+                      </p>
                     }
-                    @if (!rule.active) {
-                      <span class="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] text-gray-500">
-                        Desactivada
-                      </span>
+                    @if (rule.timeSlot) {
+                      <p class="mt-1 text-xs text-amber-700">
+                        🕐 {{ rule.timeSlot.startTime }} – {{ rule.timeSlot.endTime }}
+                      </p>
                     }
                   </div>
-                  <p class="text-xs text-gray-500">{{ ruleLabels[rule.type] }} · {{ ruleDescriptions[rule.type] }}</p>
-                  @if (rule.type === QueueRuleType.Interleaved) {
-                    <p class="mt-1 text-xs text-indigo-700">
-                      {{ rule.normalSlots }} normales + {{ rule.preferentialSlots }} preferenciales por ciclo
-                    </p>
-                  }
-                  @if (rule.timeSlot) {
-                    <p class="mt-1 text-xs text-amber-700">
-                      🕐 {{ rule.timeSlot.startTime }} – {{ rule.timeSlot.endTime }}
-                    </p>
-                  }
                 </div>
-              </div>
-              <div class="flex shrink-0 flex-wrap items-center gap-2">
-                <button type="button" (click)="activateRule(rule.id)"
-                  [disabled]="activeRuleId() === rule.id"
-                  class="rounded-xl px-3 py-1.5 text-xs font-medium transition-colors"
-                  [class.bg-indigo-100]="activeRuleId() !== rule.id"
-                  [class.text-indigo-700]="activeRuleId() !== rule.id"
-                  [class.hover:bg-indigo-200]="activeRuleId() !== rule.id"
-                  [class.opacity-40]="activeRuleId() === rule.id"
-                  [class.cursor-not-allowed]="activeRuleId() === rule.id">
-                  ▶ Usar globalmente
-                </button>
-                <button type="button" (click)="toggleRule(rule.id)"
-                  class="rounded-xl px-3 py-1.5 text-xs font-medium transition-colors"
-                  [class.bg-green-100]="!rule.active"
-                  [class.text-green-700]="!rule.active"
-                  [class.bg-gray-100]="rule.active"
-                  [class.text-gray-600]="rule.active">
-                  {{ rule.active ? '⏸ Desactivar' : '▶ Activar' }}
-                </button>
-                <button type="button" (click)="deleteRule(rule.id)"
-                  class="rounded-xl px-2.5 py-1.5 text-xs text-gray-400 hover:bg-red-50 hover:text-red-600">
-                  🗑️
-                </button>
-              </div>
-            </div>
-          }
-        </div>
+                <div class="flex shrink-0 flex-wrap items-center gap-2">
+                  <button type="button" (click)="activateRule(rule.id)"
+                    [disabled]="activeRuleId() === rule.id"
+                    class="rounded-xl px-3 py-1.5 text-xs font-medium transition-colors"
+                    [class.bg-indigo-100]="activeRuleId() !== rule.id"
+                    [class.text-indigo-700]="activeRuleId() !== rule.id"
+                    [class.opacity-40]="activeRuleId() === rule.id"
+                    [class.cursor-not-allowed]="activeRuleId() === rule.id">
+                    ▶ Usar globalmente
+                  </button>
+                  <button type="button" (click)="toggleRule(rule.id)"
+                    class="rounded-xl px-3 py-1.5 text-xs font-medium transition-colors"
+                    [class.bg-green-100]="!rule.active"
+                    [class.text-green-700]="!rule.active"
+                    [class.bg-gray-100]="rule.active"
+                    [class.text-gray-600]="rule.active">
+                    {{ rule.active ? '⏸ Desactivar' : '▶ Activar' }}
+                  </button>
+                  <button type="button" (click)="deleteRule(rule.id)"
+                    class="rounded-xl px-2.5 py-1.5 text-xs text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600">
+                    🗑️
+                  </button>
+                </div>
+              </li>
+            }
+          </ul>
+        }
 
       }
 
-      <!-- ── Tab: SLA por prioridad ─────────────────────────────────────── -->
+      <!-- ── Tab: SLA por prioridad (RF-64) ─────────────────────────────── -->
       @if (tab() === 'sla') {
-        <div class="space-y-3">
+        <div class="flex flex-col gap-3">
           @for (sla of slaConfigs(); track sla.id) {
             <div class="rounded-2xl bg-white p-4 ring-1 ring-gray-200">
               <div class="flex items-start justify-between gap-4">
                 <div>
-                  <div class="flex items-center gap-2">
+                  <div class="flex flex-wrap items-center gap-2">
                     <p class="font-semibold text-gray-900">{{ sla.name }}</p>
                     <span class="rounded-full px-2.5 py-0.5 text-xs font-semibold"
                           [class.bg-red-100]="sla.priority === TicketPriority.VIP"
@@ -186,7 +210,7 @@
                       @if (sla.serviceId) { <span class="text-xs text-indigo-600">· Servicio específico</span> }
                     </p>
                   } @else {
-                    <div class="mt-2 flex items-center gap-3">
+                    <div class="mt-2 flex flex-wrap items-center gap-3">
                       <label class="text-xs font-semibold text-gray-600">Máx. minutos:</label>
                       <input type="number" min="1" max="120"
                         [ngModel]="editMaxWait()" (ngModelChange)="editMaxWait.set(+$event)"
@@ -201,20 +225,20 @@
                 <div class="flex shrink-0 gap-2">
                   @if (editingSla() === sla.id) {
                     <button type="button" (click)="saveSla(sla.id)"
-                      class="rounded-xl bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700">
+                      class="rounded-xl bg-green-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-green-700">
                       💾 Guardar
                     </button>
                     <button type="button" (click)="editingSla.set(null)"
-                      class="rounded-xl px-3 py-1.5 text-xs text-gray-500 hover:bg-gray-100">
+                      class="rounded-xl px-3 py-1.5 text-xs text-gray-500 transition-colors hover:bg-gray-100">
                       Cancelar
                     </button>
                   } @else {
                     <button type="button" (click)="startEditSla(sla)"
-                      class="rounded-xl bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-200">
+                      class="rounded-xl bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200">
                       ✏️ Editar
                     </button>
                     <button type="button" (click)="toggleSla(sla.id)"
-                      class="rounded-xl px-3 py-1.5 text-xs font-medium"
+                      class="rounded-xl px-3 py-1.5 text-xs font-medium transition-colors"
                       [class.bg-green-100]="!sla.active"
                       [class.text-green-700]="!sla.active"
                       [class.bg-red-50]="sla.active"
@@ -243,49 +267,56 @@
 
       <!-- ── Tab: Líneas de atención (RF-71) ───────────────────────────── -->
       @if (tab() === 'lines') {
-        <div class="space-y-3">
-          @for (line of queueLines(); track line.id) {
-            <div class="flex items-start justify-between gap-4 rounded-2xl p-4 ring-1"
-                 [class.bg-white]="line.active"
-                 [class.ring-gray-200]="line.active"
-                 [class.bg-gray-50]="!line.active"
-                 [class.ring-gray-100]="!line.active"
-                 [class.opacity-60]="!line.active">
-              <div class="flex items-start gap-3">
-                <span class="text-2xl">{{ line.icon }}</span>
-                <div>
-                  <div class="flex items-center gap-2">
-                    <p class="font-semibold text-gray-900">{{ line.name }}</p>
-                    @if (!line.active) {
-                      <span class="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] text-gray-500">Inactiva</span>
-                    }
+        @if (queueLines().length === 0) {
+          <div class="flex flex-col items-center justify-center py-20" role="status">
+            <span class="mb-4 text-5xl" aria-hidden="true">🗂️</span>
+            <p class="text-base font-medium text-gray-400">No hay líneas de atención configuradas</p>
+          </div>
+        } @else {
+          <ul class="flex flex-col gap-3" aria-label="Líneas de atención">
+            @for (line of queueLines(); track line.id) {
+              <li class="flex items-start justify-between gap-4 rounded-2xl p-4 ring-1 transition-all"
+                   [class.bg-white]="line.active"
+                   [class.ring-gray-200]="line.active"
+                   [class.bg-gray-50]="!line.active"
+                   [class.ring-gray-100]="!line.active"
+                   [class.opacity-60]="!line.active">
+                <div class="flex items-start gap-3">
+                  <span class="text-2xl" aria-hidden="true">{{ line.icon }}</span>
+                  <div>
+                    <div class="flex flex-wrap items-center gap-2">
+                      <p class="font-semibold text-gray-900">{{ line.name }}</p>
+                      @if (!line.active) {
+                        <span class="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] text-gray-500">Inactiva</span>
+                      }
+                    </div>
+                    <p class="text-xs text-gray-500">{{ line.description }}</p>
+                    <p class="mt-1 text-xs text-indigo-600">
+                      {{ line.serviceIds.length }} servicio(s) · {{ line.distributionStrategy }}
+                    </p>
                   </div>
-                  <p class="text-xs text-gray-500">{{ line.description }}</p>
-                  <p class="mt-1 text-xs text-indigo-600">
-                    {{ line.serviceIds.length }} servicio(s) · {{ line.distributionStrategy }}
-                  </p>
                 </div>
-              </div>
-              <div class="flex shrink-0 gap-2">
-                <button type="button" (click)="toggleLine(line.id)"
-                  class="rounded-xl px-3 py-1.5 text-xs font-medium transition-colors"
-                  [class.bg-green-100]="!line.active"
-                  [class.text-green-700]="!line.active"
-                  [class.bg-gray-100]="line.active"
-                  [class.text-gray-600]="line.active">
-                  {{ line.active ? '⏸ Desactivar' : '▶ Activar' }}
-                </button>
-                <button type="button" (click)="deleteLine(line.id)"
-                  class="rounded-xl px-2.5 py-1.5 text-xs text-gray-400 hover:bg-red-50 hover:text-red-600">
-                  🗑️
-                </button>
-              </div>
-            </div>
-          }
-        </div>
+                <div class="flex shrink-0 gap-2">
+                  <button type="button" (click)="toggleLine(line.id)"
+                    class="rounded-xl px-3 py-1.5 text-xs font-medium transition-colors"
+                    [class.bg-green-100]="!line.active"
+                    [class.text-green-700]="!line.active"
+                    [class.bg-gray-100]="line.active"
+                    [class.text-gray-600]="line.active">
+                    {{ line.active ? '⏸ Desactivar' : '▶ Activar' }}
+                  </button>
+                  <button type="button" (click)="deleteLine(line.id)"
+                    class="rounded-xl px-2.5 py-1.5 text-xs text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600">
+                    🗑️
+                  </button>
+                </div>
+              </li>
+            }
+          </ul>
+        }
       }
 
     </div>
-  </div>
+  </section>
 
 </div>
