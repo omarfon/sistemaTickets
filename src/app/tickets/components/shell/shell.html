@@ -1,0 +1,302 @@
+<div class="flex h-screen overflow-hidden bg-gray-50">
+
+  <!-- ── Sidebar ────────────────────────────────────────────────── -->
+  <aside [class]="sidebarClasses()" aria-label="Menú principal">
+
+    <!-- Logo -->
+    <div class="flex items-center gap-3 border-b border-slate-700/60 px-4 py-5">
+      <span class="flex-shrink-0 text-2xl">�</span>
+      @if (!sidebarCollapsed()) {
+        <div class="min-w-0">
+          <p class="truncate text-sm font-bold tracking-wide text-white">MediTurno Clínica</p>
+          <p class="truncate text-xs text-slate-400">Gestión de pacientes</p>
+        </div>
+      }
+    </div>
+
+    <!-- Navegación -->
+    <nav class="flex-1 space-y-0.5 overflow-y-auto px-2 py-4">
+
+      <!-- Sección: Tickets -->
+      @if (!sidebarCollapsed()) {
+        <p class="px-3 pb-2 pt-2 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+          Gestión de Pacientes
+        </p>
+      }
+
+      <a
+        routerLink="/tickets/lista"
+        routerLinkActive="!bg-blue-600 !text-white"
+        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+        ariaCurrentWhenActive="page"
+        title="Cola de pacientes"
+      >
+        <span class="flex-shrink-0 text-base">📄</span>
+        @if (!sidebarCollapsed()) { <span>Cola de pacientes</span> }
+      </a>
+
+      <a
+        routerLink="/tickets/nuevo"
+        routerLinkActive="!bg-blue-600 !text-white"
+        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+        ariaCurrentWhenActive="page"
+        title="Registrar paciente"
+      >
+        <span class="flex-shrink-0 text-base">➕</span>
+        @if (!sidebarCollapsed()) { <span>Registrar paciente</span> }
+      </a>
+
+      <a
+        routerLink="/tickets/atencion"
+        routerLinkActive="!bg-blue-600 !text-white"
+        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+        ariaCurrentWhenActive="page"
+        title="Panel operador"
+      >
+        <span class="flex-shrink-0 text-base">🖥️</span>
+        @if (!sidebarCollapsed()) { <span>Panel operador</span> }
+      </a>
+
+      <hr class="my-3 border-slate-700/60" />
+
+      <!-- Sección: Ventanillas / Módulos -->
+      @if (!sidebarCollapsed()) {
+        <p class="px-3 pb-2 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+          Módulo 2 — Ventanillas
+        </p>
+      }
+
+      <a
+        routerLink="/ventanillas/dashboard"
+        routerLinkActive="!bg-blue-600 !text-white"
+        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+        ariaCurrentWhenActive="page"
+        title="Dashboard de ventanillas (RF-29)"
+      >
+        <span class="flex-shrink-0 text-base">🪟</span>
+        @if (!sidebarCollapsed()) { <span>Dashboard módulos</span> }
+      </a>
+
+      <a
+        routerLink="/ventanillas/nueva"
+        routerLinkActive="!bg-blue-600 !text-white"
+        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+        ariaCurrentWhenActive="page"
+        title="Nueva ventanilla (RF-21)"
+      >
+        <span class="flex-shrink-0 text-base">➕</span>
+        @if (!sidebarCollapsed()) { <span>Nueva ventanilla</span> }
+      </a>
+
+      <hr class="my-3 border-slate-700/60" />
+
+      <!-- Sección: Canales -->
+      @if (!sidebarCollapsed()) {
+        <p class="px-3 pb-2 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+          Canales de entrada
+        </p>
+      }
+
+      <a
+        routerLink="/tickets/kiosko"
+        routerLinkActive="!bg-blue-600 !text-white"
+        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+        ariaCurrentWhenActive="page"
+        title="Kiosko (RF-02)"
+      >
+        <span class="flex-shrink-0 text-base">🖨️</span>
+        @if (!sidebarCollapsed()) { <span>Kiosko</span> }
+      </a>
+
+      <a
+        routerLink="/tickets/virtual"
+        routerLinkActive="!bg-blue-600 !text-white"
+        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+        ariaCurrentWhenActive="page"
+        title="Cola Virtual web (RF-03/RF-19)"
+      >
+        <span class="flex-shrink-0 text-base">🌐</span>
+        @if (!sidebarCollapsed()) { <span>Cola Virtual</span> }
+      </a>
+
+      <a
+        routerLink="/tickets/checkin"
+        routerLinkActive="!bg-blue-600 !text-white"
+        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+        ariaCurrentWhenActive="page"
+        title="Check-in de llegada (RF-20)"
+      >
+        <span class="flex-shrink-0 text-base">📍</span>
+        @if (!sidebarCollapsed()) { <span>Check-in</span> }
+      </a>
+
+      <hr class="my-3 border-slate-700/60" />
+
+      <!-- Sección: Módulo 3 — Operadores -->
+      @if (!sidebarCollapsed()) {
+        <p class="px-3 pb-2 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+          Módulo 3 — Operadores
+        </p>
+      }
+
+      <a
+        routerLink="/operadores/supervision"
+        routerLinkActive="!bg-blue-600 !text-white"
+        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+        ariaCurrentWhenActive="page"
+        title="Supervisión en tiempo real (RF-47)"
+      >
+        <span class="flex-shrink-0 text-base">👥</span>
+        @if (!sidebarCollapsed()) { <span>Supervisión</span> }
+      </a>
+
+      <a
+        routerLink="/operadores/nuevo"
+        routerLinkActive="!bg-blue-600 !text-white"
+        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+        ariaCurrentWhenActive="page"
+        title="Nuevo operador (RF-36)"
+      >
+        <span class="flex-shrink-0 text-base">🧑‍💼</span>
+        @if (!sidebarCollapsed()) { <span>Nuevo operador</span> }
+      </a>
+
+      <a
+        routerLink="/operadores/panel"
+        routerLinkActive="!bg-blue-600 !text-white"
+        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+        ariaCurrentWhenActive="page"
+        title="Panel de trabajo (RF-40/41/42)"
+      >
+        <span class="flex-shrink-0 text-base">🖥️</span>
+        @if (!sidebarCollapsed()) { <span>Mi panel</span> }
+      </a>
+
+      <a
+        routerLink="/operadores/login"
+        routerLinkActive="!bg-blue-600 !text-white"
+        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+        ariaCurrentWhenActive="page"
+        title="Login de operador (RF-37)"
+      >
+        <span class="flex-shrink-0 text-base">🔑</span>
+        @if (!sidebarCollapsed()) { <span>Iniciar sesión</span> }
+      </a>
+
+      <hr class="my-3 border-slate-700/60" />
+
+      <!-- Sección: Módulo 4 — Panel y Display -->
+      @if (!sidebarCollapsed()) {
+        <p class="px-3 pb-2 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+          Módulo 4 — Panel y Display
+        </p>
+      }
+
+      <a
+        routerLink="/display/configuracion"
+        routerLinkActive="!bg-blue-600 !text-white"
+        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+        ariaCurrentWhenActive="page"
+        title="Configuración de pantallas (RF-54/55/56)"
+      >
+        <span class="flex-shrink-0 text-base">📺</span>
+        @if (!sidebarCollapsed()) { <span>Configurar pantallas</span> }
+      </a>
+
+      <a
+        href="/display/pantalla/1"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+        title="Pantalla de TV — Admisión (RF-51/58)"
+      >
+        <span class="flex-shrink-0 text-base">🖥️</span>
+        @if (!sidebarCollapsed()) { <span>Pantalla 1 — Admisión</span> }
+      </a>
+
+      <a
+        href="/display/pantalla/2"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+        title="Pantalla de TV — Consultorios (RF-51/58)"
+      >
+        <span class="flex-shrink-0 text-base">🖥️</span>
+        @if (!sidebarCollapsed()) { <span>Pantalla 2 — Consultorios</span> }
+      </a>
+
+      <hr class="my-3 border-slate-700/60" />
+
+      <!-- Sección: Próximamente -->
+      @if (!sidebarCollapsed()) {
+        <p class="px-3 pb-2 text-[10px] font-semibold uppercase tracking-widest text-slate-600">
+          Próximamente
+        </p>
+      }
+
+      <span
+        class="flex cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600"
+        title="Reportes (próximamente)"
+      >
+        <span class="flex-shrink-0 text-base">📊</span>
+        @if (!sidebarCollapsed()) { <span>Reportes</span> }
+      </span>
+
+      <span
+        class="flex cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600"
+        title="Configuración (próximamente)"
+      >
+        <span class="flex-shrink-0 text-base">⚙️</span>
+        @if (!sidebarCollapsed()) { <span>Configuración</span> }
+      </span>
+
+    </nav>
+
+    <!-- Botón colapsar -->
+    <div class="border-t border-slate-700/60 px-3 py-3">
+      <button
+        type="button"
+        (click)="sidebarCollapsed.update(v => !v)"
+        class="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-xs text-slate-500 transition-colors hover:bg-slate-800 hover:text-slate-300"
+        [attr.aria-label]="sidebarCollapsed() ? 'Expandir menú' : 'Colapsar menú'"
+      >
+        <span class="flex-shrink-0 text-base">{{ sidebarCollapsed() ? '→' : '←' }}</span>
+        @if (!sidebarCollapsed()) { <span>Colapsar</span> }
+      </button>
+    </div>
+
+  </aside>
+
+  <!-- ── Área principal ─────────────────────────────────────────── -->
+  <div class="flex flex-1 flex-col overflow-hidden">
+
+    <!-- Top bar -->
+    <header class="flex flex-shrink-0 items-center justify-between border-b border-gray-200 bg-white px-6 py-3 shadow-sm">
+      <div class="flex items-center gap-3" role="status" aria-live="polite">
+        <span class="text-sm font-medium text-gray-600">Pacientes en espera:</span>
+        <span class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-800">
+          {{ totalWaiting() }}
+        </span>
+        @if (totalVirtual() > 0) {
+          <span class="text-sm font-medium text-gray-600">Virtuales:</span>
+          <span class="inline-flex items-center rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-bold text-indigo-800">
+            🌐 {{ totalVirtual() }}
+          </span>
+        }
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="text-sm text-gray-400">Operador</span>
+        <div
+          class="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white"
+          aria-hidden="true"
+        >O</div>
+      </div>
+    </header>
+
+    <!-- Contenido de la ruta -->
+    <main class="flex-1 overflow-y-auto p-6">
+      <router-outlet />
+    </main>
+
+  </div>
+</div>

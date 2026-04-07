@@ -1,0 +1,715 @@
+<!-- RF-54/55/56/58/59 — Configuración del Panel de Display -->
+<div class="flex flex-col gap-6">
+
+  <!-- ── Cabecera ──────────────────────────────────────────────────────── -->
+  <div class="flex flex-wrap items-start justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Panel y Display</h1>
+      <p class="mt-1 text-sm text-gray-500">
+        Configura las pantallas de llamado, anuncios y branding (RF-51 a RF-60)
+      </p>
+    </div>
+
+    <!-- Stat chips + botón Nueva pantalla -->
+    <div class="flex flex-wrap items-center gap-3" role="status" aria-live="polite">
+      <div class="flex flex-col items-center rounded-xl bg-blue-50 px-5 py-3 ring-1 ring-blue-200">
+        <span class="text-2xl font-bold text-blue-700">{{ totalConfigs() }}</span>
+        <span class="text-xs font-medium text-blue-600">Pantallas</span>
+      </div>
+      <div class="flex flex-col items-center rounded-xl bg-emerald-50 px-5 py-3 ring-1 ring-emerald-200">
+        <span class="text-2xl font-bold text-emerald-700">{{ activeCallCount() }}</span>
+        <span class="text-xs font-medium text-emerald-600">En atención</span>
+      </div>
+      <div class="flex flex-col items-center rounded-xl bg-gray-50 px-5 py-3 ring-1 ring-gray-200">
+        <span class="text-2xl font-bold text-gray-700">{{ historyCount() }}</span>
+        <span class="text-xs font-medium text-gray-500">Llamados hoy</span>
+      </div>
+
+      <button
+        type="button"
+        (click)="openNewForm()"
+        class="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700"
+      >
+        <span>📺</span><span>Nueva pantalla</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Grid: Lista de pantallas + Editor / Formulario nuevo ──────────── -->
+  <div class="grid gap-6 lg:grid-cols-[1fr_1.6fr]">
+
+    <!-- ── Lista de pantallas configuradas ────────────────────────────── -->
+    <div class="flex flex-col gap-3">
+      <h2 class="text-sm font-semibold uppercase tracking-widest text-gray-500">
+        📺 Pantallas configuradas
+      </h2>
+
+      <ul class="flex flex-col gap-3" role="list">
+        @for (cfg of configs(); track cfg.id) {
+          <li role="listitem">
+            <article
+              class="rounded-2xl bg-white shadow-sm ring-1 transition-shadow hover:shadow-md"
+              [class.ring-blue-400]="selectedConfigId() === cfg.id && !showNewForm()"
+              [class.ring-gray-200]="selectedConfigId() !== cfg.id || showNewForm()"
+            >
+              <!-- Cabecera tarjeta -->
+              <div class="flex items-center gap-4 p-4">
+                <span class="text-4xl leading-none" aria-hidden="true">{{ cfg.clinicLogo }}</span>
+                <div class="min-w-0 flex-1">
+                  <p class="truncate text-sm font-bold text-gray-900">{{ cfg.name }}</p>
+                  <p class="truncate text-xs text-gray-500">
+                    Pantalla {{ cfg.screenId }} · {{ cfg.branch.name }}
+                  </p>
+                  <p class="mt-1 text-xs text-gray-400">
+                    🎨 Tema: {{ themeLabel(cfg.theme) }}
+                    @if (cfg.audioEnabled) { &nbsp;·&nbsp; 🔊 Audio activo }
+                    @if (cfg.tvMode) { &nbsp;·&nbsp; 📺 Modo TV }
+                  </p>
+                </div>
+              </div>
+
+              <!-- Acciones -->
+              <div class="flex items-center gap-2 border-t border-gray-100 px-4 py-2">
+                <button
+                  type="button"
+                  (click)="selectConfig(cfg.id)"
+                  class="flex-1 rounded-xl bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-100"
+                >
+                  ✏️ Configurar
+                </button>
+                <button
+                  type="button"
+                  (click)="openDisplay(cfg.screenId)"
+                  class="flex-1 rounded-xl bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100"
+                  title="Abrir pantalla de TV en nueva pestaña (RF-58)"
+                >
+                  📺 Ver pantalla
+                </button>
+                <button
+                  type="button"
+                  (click)="deleteConfig(cfg.id)"
+                  class="rounded-xl bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-100"
+                  [attr.aria-label]="'Eliminar pantalla ' + cfg.name"
+                >
+                  🗑️
+                </button>
+              </div>
+
+              <!-- Anuncios activos -->
+              @if (cfg.announcements.length > 0) {
+                <div class="border-t border-gray-100 px-4 py-2">
+                  <p class="text-xs text-gray-400">
+                    📢 {{ cfg.announcements.filter(a => a.active).length }}/{{ cfg.announcements.length }} anuncios activos
+                  </p>
+                </div>
+              }
+            </article>
+          </li>
+        }
+      </ul>
+    </div>
+
+    <!-- ── Editor de la pantalla seleccionada ─────────────────────────── -->
+    @if (selectedConfig(); as cfg) {
+      <div class="flex flex-col gap-4">
+
+        <!-- Encabezado del editor -->
+        <div class="flex items-center justify-between">
+          <h2 class="text-sm font-semibold uppercase tracking-widest text-gray-500">
+            ✏️ Editando: {{ cfg.name }}
+          </h2>
+          <button
+            type="button"
+            (click)="closeEditor()"
+            class="text-xs text-gray-400 hover:text-gray-600"
+          >
+            ✕ Cerrar
+          </button>
+        </div>
+
+        <!-- Tabs de secciones -->
+        <nav class="flex gap-2" aria-label="Secciones del editor">
+          @for (tab of [['Apariencia', 0], ['Anuncios', 1], ['Ventanillas', 2]]; track tab[1]) {
+            <button
+              type="button"
+              (click)="tabIndex.set(+tab[1])"
+              class="rounded-xl px-4 py-2 text-sm font-semibold transition-colors"
+              [class.bg-blue-600]="tabIndex() === +tab[1]"
+              [class.text-white]="tabIndex() === +tab[1]"
+              [class.bg-gray-100]="tabIndex() !== +tab[1]"
+              [class.text-gray-600]="tabIndex() !== +tab[1]"
+              [attr.aria-selected]="tabIndex() === +tab[1]"
+            >
+              {{ tab[0] }}
+            </button>
+          }
+        </nav>
+
+        <!-- ── Tab 0: Apariencia / Config principal ──────────────────── -->
+        @if (tabIndex() === 0) {
+          <div class="flex flex-col gap-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-200">
+
+            <!-- Nombre de la clínica -->
+            <div class="flex flex-col gap-1">
+              <label class="text-xs font-semibold text-gray-600">🏥 Nombre de la clínica (RF-55)</label>
+              <input
+                type="text"
+                [value]="editClinicName()"
+                (input)="editClinicName.set($any($event.target).value)"
+                placeholder="MediTurno Clínica"
+                class="rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+              />
+            </div>
+
+            <!-- Logo / Emoji -->
+            <div class="flex flex-col gap-1">
+              <label class="text-xs font-semibold text-gray-600">Logo / Emoji (RF-55)</label>
+              <div class="flex items-center gap-3">
+                <input
+                  type="text"
+                  [value]="editClinicLogo()"
+                  (input)="editClinicLogo.set($any($event.target).value)"
+                  placeholder="🏥"
+                  class="w-28 rounded-xl border border-gray-300 px-3 py-2 text-center text-2xl focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                />
+                <div class="flex gap-2">
+                  @for (emoji of ['🏥','💊','🩺','🧬','🏨','⚕️']; track emoji) {
+                    <button
+                      type="button"
+                      (click)="editClinicLogo.set(emoji)"
+                      class="rounded-lg border border-gray-200 px-2 py-1 text-xl transition hover:bg-gray-50"
+                      [class.border-blue-400]="editClinicLogo() === emoji"
+                      [class.bg-blue-50]="editClinicLogo() === emoji"
+                    >{{ emoji }}</button>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <!-- Tema -->
+            <div class="flex flex-col gap-2">
+              <label class="text-xs font-semibold text-gray-600">🎨 Tema visual (RF-55)</label>
+              <div class="flex gap-2">
+                @for (th of themeOptions; track th) {
+                  <button
+                    type="button"
+                    (click)="editTheme.set(th)"
+                    class="flex-1 rounded-xl px-3 py-2 text-sm font-semibold transition"
+                    [class]="themePillClass(th, editTheme() === th)"
+                    [attr.aria-pressed]="editTheme() === th"
+                  >
+                    {{ themeLabel(th) }}
+                  </button>
+                }
+              </div>
+            </div>
+
+            <!-- Historial -->
+            <div class="flex flex-col gap-2">
+              <label class="text-xs font-semibold text-gray-600">📋 Historial de llamados (RF-53)</label>
+              <div class="flex items-center gap-4">
+                <label class="flex cursor-pointer items-center gap-2">
+                  <input
+                    type="checkbox"
+                    [checked]="editShowHistory()"
+                    (change)="editShowHistory.set($any($event.target).checked)"
+                    class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span class="text-sm text-gray-700">Mostrar historial</span>
+                </label>
+                @if (editShowHistory()) {
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs text-gray-500">Últimas</span>
+                    <input
+                      type="number"
+                      min="2" max="10"
+                      [value]="editHistoryCount()"
+                      (input)="editHistoryCount.set(+$any($event.target).value)"
+                      class="w-16 rounded-lg border border-gray-300 px-2 py-1 text-center text-sm focus:border-blue-500 focus:outline-none"
+                    />
+                    <span class="text-xs text-gray-500">llamadas</span>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- Audio -->
+            <div class="flex flex-col gap-2">
+              <label class="text-xs font-semibold text-gray-600">🔊 Audio / Voz (RF-52)</label>
+              <div class="flex flex-wrap items-center gap-4">
+                <label class="flex cursor-pointer items-center gap-2">
+                  <input
+                    type="checkbox"
+                    [checked]="editAudioEnabled()"
+                    (change)="editAudioEnabled.set($any($event.target).checked)"
+                    class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span class="text-sm text-gray-700">Anuncio de voz al llamar</span>
+                </label>
+                @if (editAudioEnabled()) {
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs text-gray-500">Volumen</span>
+                    <input
+                      type="range"
+                      min="0" max="1" step="0.1"
+                      [value]="editAudioVolume()"
+                      (input)="editAudioVolume.set(+$any($event.target).value)"
+                      class="w-28"
+                    />
+                    <span class="text-xs font-semibold text-gray-600">
+                      {{ (editAudioVolume() * 100).toFixed(0) }}%
+                    </span>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- Opciones de pantalla -->
+            <div class="flex flex-col gap-2">
+              <label class="text-xs font-semibold text-gray-600">📺 Opciones de pantalla (RF-58)</label>
+              <div class="flex flex-wrap gap-4">
+                <label class="flex cursor-pointer items-center gap-2">
+                  <input
+                    type="checkbox"
+                    [checked]="editTvMode()"
+                    (change)="editTvMode.set($any($event.target).checked)"
+                    class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span class="text-sm text-gray-700">Modo TV (horizontal)</span>
+                </label>
+                <label class="flex cursor-pointer items-center gap-2">
+                  <input
+                    type="checkbox"
+                    [checked]="editKioskMode()"
+                    (change)="editKioskMode.set($any($event.target).checked)"
+                    class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span class="text-sm text-gray-700">Modo quiosco</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Botón guardar -->
+            <div class="flex items-center gap-3 border-t border-gray-100 pt-4">
+              <button
+                type="button"
+                (click)="saveConfig()"
+                class="rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
+              >
+                Guardar cambios
+              </button>
+              @if (saved()) {
+                <span class="text-sm font-medium text-emerald-600">✓ Guardado correctamente</span>
+              }
+              <button
+                type="button"
+                (click)="openDisplay(cfg.screenId)"
+                class="ml-auto rounded-xl bg-gray-100 px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-200"
+              >
+                📺 Abrir pantalla
+              </button>
+            </div>
+          </div>
+        }
+
+        <!-- ── Tab 1: Anuncios informativos (RF-56) ────────────────────── -->
+        @if (tabIndex() === 1) {
+          <div class="flex flex-col gap-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-200">
+            <p class="text-sm text-gray-500">
+              Los anuncios activos rotan en el ticker inferior de la pantalla cada 8 segundos.
+            </p>
+
+            <!-- Agregar anuncio -->
+            <div class="flex gap-2">
+              <input
+                type="text"
+                [value]="newAnnouncementMsg()"
+                (input)="newAnnouncementMsg.set($any($event.target).value)"
+                (keyup.enter)="addAnnouncement()"
+                placeholder="Escribe un nuevo anuncio…"
+                class="flex-1 rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+              />
+              <button
+                type="button"
+                (click)="addAnnouncement()"
+                [disabled]="!newAnnouncementMsg().trim()"
+                class="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50"
+              >
+                ➕ Agregar
+              </button>
+            </div>
+
+            <!-- Lista de anuncios -->
+            @if (cfg.announcements.length === 0) {
+              <div class="flex flex-col items-center py-10 text-gray-400">
+                <span class="mb-2 text-5xl">📢</span>
+                <p class="text-sm font-medium">Sin anuncios configurados</p>
+              </div>
+            } @else {
+              <ul class="flex flex-col gap-2" role="list">
+                @for (ann of cfg.announcements; track ann.id) {
+                  <li role="listitem">
+                    <div class="flex items-center gap-3 rounded-xl border border-gray-200 p-3"
+                      [class.opacity-50]="!ann.active">
+                      <!-- Toggle activo -->
+                      <button
+                        type="button"
+                        (click)="toggleAnnouncement(ann.id)"
+                        class="flex-shrink-0 text-xl leading-none transition"
+                        [attr.aria-label]="ann.active ? 'Desactivar anuncio' : 'Activar anuncio'"
+                        [attr.title]="ann.active ? 'Activo — clic para desactivar' : 'Inactivo — clic para activar'"
+                      >
+                        {{ ann.active ? '🟢' : '⚫' }}
+                      </button>
+                      <!-- Mensaje -->
+                      <p class="flex-1 text-sm text-gray-700">{{ ann.message }}</p>
+                      <!-- Fecha -->
+                      <p class="flex-shrink-0 text-xs text-gray-400">
+                        {{ ann.createdAt | date:'d MMM':'':'es' }}
+                      </p>
+                      <!-- Eliminar -->
+                      <button
+                        type="button"
+                        (click)="removeAnnouncement(ann.id)"
+                        class="flex-shrink-0 rounded-lg p-1 text-red-400 transition hover:bg-red-50 hover:text-red-600"
+                        aria-label="Eliminar anuncio"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  </li>
+                }
+              </ul>
+            }
+          </div>
+        }
+
+        <!-- ── Tab 2: Filtro de ventanillas (RF-54) ─────────────────────── -->
+        @if (tabIndex() === 2) {
+          <div class="flex flex-col gap-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-200">
+            <p class="text-sm text-gray-500">
+              Selecciona las ventanillas que aparecerán en <strong>Pantalla {{ cfg.screenId }}</strong>.
+              Sin selección = muestra todas.
+            </p>
+
+            @if (cfg.windowFilter.length === 0) {
+              <div class="rounded-xl bg-blue-50 px-4 py-3 text-sm text-blue-700 ring-1 ring-blue-200">
+                📡 Esta pantalla muestra todas las ventanillas activas
+              </div>
+            } @else {
+              <div class="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-700 ring-1 ring-amber-200">
+                🔽 Filtrando {{ cfg.windowFilter.length }} ventanilla(s)
+              </div>
+            }
+
+            <ul class="grid grid-cols-2 gap-2" role="list">
+              @for (win of windows(); track win.id) {
+                <li role="listitem">
+                  <button
+                    type="button"
+                    (click)="toggleWindowFilter(win.id)"
+                    class="flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-left text-sm font-medium transition"
+                    [class.border-blue-500]="isWindowSelected(win.id)"
+                    [class.bg-blue-50]="isWindowSelected(win.id)"
+                    [class.text-blue-800]="isWindowSelected(win.id)"
+                    [class.border-gray-200]="!isWindowSelected(win.id)"
+                    [class.bg-white]="!isWindowSelected(win.id)"
+                    [class.text-gray-700]="!isWindowSelected(win.id)"
+                    [attr.aria-pressed]="isWindowSelected(win.id)"
+                  >
+                    <span class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-bold text-gray-600">
+                      {{ win.number }}
+                    </span>
+                    <span class="min-w-0 flex-1 truncate">{{ win.name }}</span>
+                    @if (isWindowSelected(win.id)) {
+                      <span class="flex-shrink-0 text-blue-500">✓</span>
+                    }
+                  </button>
+                </li>
+              }
+            </ul>
+          </div>
+        }
+
+      </div>
+
+    } @else if (showNewForm()) {
+
+      <!-- ── Formulario maestro: Nueva pantalla ─────────────────────────── -->
+      <div class="flex flex-col gap-4">
+
+        <div class="flex items-center justify-between">
+          <h2 class="text-sm font-semibold uppercase tracking-widest text-gray-500">
+            📺 Nueva pantalla de display
+          </h2>
+          <button type="button" (click)="closeNewForm()"
+            class="text-xs text-gray-400 hover:text-gray-600">✕ Cancelar</button>
+        </div>
+
+        <div class="flex flex-col gap-5 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
+
+          <!-- Error -->
+          @if (newFormError()) {
+            <div class="flex items-center gap-3 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700 ring-1 ring-red-200">
+              <span class="flex-shrink-0 text-lg">⚠️</span>
+              <p>{{ newFormError() }}</p>
+            </div>
+          }
+
+          <!-- ─ Identificación ─ -->
+          <fieldset class="flex flex-col gap-4">
+            <legend class="mb-2 text-xs font-bold uppercase tracking-widest text-gray-400">
+              1 · Identificación
+            </legend>
+
+            <div class="grid grid-cols-[1fr_auto] gap-3">
+              <!-- Nombre descriptivo -->
+              <div class="flex flex-col gap-1">
+                <label class="text-xs font-semibold text-gray-600">
+                  Nombre descriptivo <span class="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  [value]="newName()"
+                  (input)="newName.set($any($event.target).value); newFormError.set('')"
+                  placeholder="Ej: Pantalla Sala de espera Piso 1"
+                  class="rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                />
+              </div>
+
+              <!-- ID de pantalla -->
+              <div class="flex flex-col gap-1" style="min-width:6rem">
+                <label class="text-xs font-semibold text-gray-600">
+                  ID pantalla <span class="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  [value]="newScreenId()"
+                  (input)="newScreenId.set($any($event.target).value); newFormError.set('')"
+                  placeholder="4"
+                  class="rounded-xl border border-gray-300 px-3 py-2 text-center font-mono text-sm font-bold focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                />
+                <span class="text-center text-[10px] text-gray-400">/display/pantalla/<strong>{{ newScreenId() || '?' }}</strong></span>
+              </div>
+            </div>
+          </fieldset>
+
+          <hr class="border-gray-100" />
+
+          <!-- ─ Branding ─ -->
+          <fieldset class="flex flex-col gap-4">
+            <legend class="mb-2 text-xs font-bold uppercase tracking-widest text-gray-400">
+              2 · Branding (RF-55)
+            </legend>
+
+            <!-- Nombre clínica + Logo -->
+            <div class="flex gap-3">
+              <div class="flex-1 flex flex-col gap-1">
+                <label class="text-xs font-semibold text-gray-600">Nombre de la clínica</label>
+                <input
+                  type="text"
+                  [value]="newClinicName()"
+                  (input)="newClinicName.set($any($event.target).value)"
+                  placeholder="MediTurno Clínica"
+                  class="rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                />
+              </div>
+              <div class="flex flex-col gap-1" style="min-width:5rem">
+                <label class="text-xs font-semibold text-gray-600">Logo</label>
+                <input
+                  type="text"
+                  [value]="newClinicLogo()"
+                  (input)="newClinicLogo.set($any($event.target).value)"
+                  class="rounded-xl border border-gray-300 px-3 py-2 text-center text-2xl focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                />
+              </div>
+            </div>
+
+            <!-- Selector rápido de emojis -->
+            <div class="flex flex-wrap gap-2">
+              @for (emoji of ['🏥','💊','🩺','🧬','🏨','⚕️','🔬','🫀','🧪']; track emoji) {
+                <button type="button" (click)="newClinicLogo.set(emoji)"
+                  class="rounded-lg border px-2 py-1 text-xl transition hover:bg-gray-50"
+                  [class.border-blue-400]="newClinicLogo() === emoji"
+                  [class.bg-blue-50]="newClinicLogo() === emoji"
+                  [class.border-gray-200]="newClinicLogo() !== emoji"
+                >{{ emoji }}</button>
+              }
+            </div>
+
+            <!-- Tema visual -->
+            <div class="flex flex-col gap-2">
+              <label class="text-xs font-semibold text-gray-600">Tema visual</label>
+              <div class="flex gap-2">
+                @for (th of themeOptions; track th) {
+                  <button type="button" (click)="newTheme.set(th)"
+                    class="flex-1 rounded-xl px-3 py-2 text-sm font-semibold transition"
+                    [class]="themePillClass(th, newTheme() === th)"
+                    [attr.aria-pressed]="newTheme() === th"
+                  >{{ themeLabel(th) }}</button>
+                }
+              </div>
+            </div>
+          </fieldset>
+
+          <hr class="border-gray-100" />
+
+          <!-- ─ Sede ─ -->
+          <fieldset class="flex flex-col gap-3">
+            <legend class="mb-2 text-xs font-bold uppercase tracking-widest text-gray-400">
+              3 · Sede (RF-59)
+            </legend>
+
+            @if (knownBranches().length > 0) {
+              <div class="flex flex-wrap gap-2">
+                <span class="text-xs text-gray-400 self-center">Reusar:</span>
+                @for (b of knownBranches(); track b.name) {
+                  <button type="button" (click)="useBranch(b)"
+                    class="rounded-full border border-gray-300 bg-white px-3 py-1 text-xs font-medium text-gray-600 transition hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700"
+                    [class.border-blue-500]="newBranchName() === b.name"
+                    [class.bg-blue-50]="newBranchName() === b.name"
+                    [class.text-blue-700]="newBranchName() === b.name"
+                  >{{ b.name }}</button>
+                }
+              </div>
+            }
+
+            <div class="grid grid-cols-2 gap-3">
+              <div class="flex flex-col gap-1">
+                <label class="text-xs font-semibold text-gray-600">Nombre de la sede</label>
+                <input
+                  type="text"
+                  [value]="newBranchName()"
+                  (input)="newBranchName.set($any($event.target).value)"
+                  placeholder="Sede Central"
+                  class="rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                />
+              </div>
+              <div class="flex flex-col gap-1">
+                <label class="text-xs font-semibold text-gray-600">Dirección</label>
+                <input
+                  type="text"
+                  [value]="newBranchAddr()"
+                  (input)="newBranchAddr.set($any($event.target).value)"
+                  placeholder="Av. Principal 123"
+                  class="rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                />
+              </div>
+            </div>
+          </fieldset>
+
+          <hr class="border-gray-100" />
+
+          <!-- ─ Opciones ─ -->
+          <fieldset class="flex flex-col gap-3">
+            <legend class="mb-2 text-xs font-bold uppercase tracking-widest text-gray-400">
+              4 · Opciones
+            </legend>
+            <div class="flex flex-wrap gap-5">
+              <label class="flex cursor-pointer items-center gap-2">
+                <input type="checkbox" [checked]="newAudio()"
+                  (change)="newAudio.set($any($event.target).checked)"
+                  class="h-4 w-4 rounded border-gray-300 text-blue-600" />
+                <span class="text-sm text-gray-700">🔊 Anuncio de voz (RF-52)</span>
+              </label>
+              <label class="flex cursor-pointer items-center gap-2">
+                <input type="checkbox" [checked]="newTvMode()"
+                  (change)="newTvMode.set($any($event.target).checked)"
+                  class="h-4 w-4 rounded border-gray-300 text-blue-600" />
+                <span class="text-sm text-gray-700">📺 Modo TV (RF-58)</span>
+              </label>
+              <label class="flex cursor-pointer items-center gap-2">
+                <input type="checkbox" [checked]="newKioskMode()"
+                  (change)="newKioskMode.set($any($event.target).checked)"
+                  class="h-4 w-4 rounded border-gray-300 text-blue-600" />
+                <span class="text-sm text-gray-700">🖥️ Modo quiosco</span>
+              </label>
+            </div>
+          </fieldset>
+
+          <hr class="border-gray-100" />
+
+          <!-- ─ Vista previa ─ -->
+          <div class="flex items-center gap-4 rounded-xl bg-gray-50 p-4 ring-1 ring-gray-200">
+            <div
+              class="flex h-16 w-24 flex-shrink-0 items-center justify-center rounded-xl text-3xl shadow-inner"
+              [class.bg-gray-950]="newTheme() === DisplayTheme.Oscuro"
+              [class.bg-blue-950]="newTheme() === DisplayTheme.Clinico"
+              [class.bg-slate-100]="newTheme() === DisplayTheme.Claro"
+            >
+              {{ newClinicLogo() || '📺' }}
+            </div>
+            <div>
+              <p class="font-bold text-gray-800">{{ newClinicName() || 'Nombre de la clínica' }}</p>
+              <p class="text-xs text-gray-500">
+                Pantalla <strong>{{ newScreenId() || '?' }}</strong>
+                · {{ newBranchName() || 'Sin sede' }}
+                · {{ themeLabel(newTheme()) }}
+              </p>
+              <p class="mt-1 text-xs text-gray-400">
+                URL: /display/pantalla/{{ newScreenId() || '?' }}
+              </p>
+            </div>
+          </div>
+
+          <!-- ─ Botón crear ─ -->
+          <button
+            type="button"
+            (click)="submitNewConfig()"
+            [disabled]="!newName().trim() || !newScreenId().trim()"
+            class="w-full rounded-xl bg-blue-600 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            ✅ Crear pantalla
+          </button>
+        </div>
+      </div>
+
+    } @else {
+
+      <!-- Placeholder cuando no hay pantalla seleccionada -->
+      <div
+        class="flex flex-col items-center justify-center rounded-2xl bg-white py-20 shadow-sm ring-1 ring-gray-200"
+        role="status"
+      >
+        <span class="mb-4 text-6xl" aria-hidden="true">📺</span>
+        <p class="text-base font-semibold text-gray-400">Selecciona una pantalla para editarla</p>
+        <p class="mt-2 text-sm text-gray-400">
+          o haz clic en <strong class="text-blue-600">Nueva pantalla</strong> para crear una
+        </p>
+        <button
+          type="button"
+          (click)="openNewForm()"
+          class="mt-6 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
+        >
+          <span>📺</span><span>Nueva pantalla</span>
+        </button>
+      </div>
+
+    }
+
+  </div>
+
+  <!-- ── Accesos directos a las pantallas ─────────────────────────────── -->
+  <div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-200">
+    <h2 class="mb-4 text-sm font-semibold uppercase tracking-widest text-gray-500">
+      🚀 Acceso rápido a pantallas (RF-57 tiempo real)
+    </h2>
+    <div class="flex flex-wrap gap-3">
+      @for (cfg of configs(); track cfg.id) {
+        <button
+          type="button"
+          (click)="openDisplay(cfg.screenId)"
+          class="flex items-center gap-3 rounded-2xl bg-gray-50 px-5 py-3 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-gray-200 transition hover:bg-blue-50 hover:text-blue-700 hover:ring-blue-300"
+        >
+          <span class="text-2xl" aria-hidden="true">{{ cfg.clinicLogo }}</span>
+          <div class="text-left">
+            <p class="font-bold">Pantalla {{ cfg.screenId }}</p>
+            <p class="text-xs text-gray-400">{{ cfg.branch.name }}</p>
+          </div>
+          <span class="ml-2 text-xs opacity-50">↗</span>
+        </button>
+      }
+    </div>
+  </div>
+
+</div>

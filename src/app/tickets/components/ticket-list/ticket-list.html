@@ -1,0 +1,101 @@
+﻿<div class="flex flex-col gap-6">
+  <!-- Header con estadísticas -->
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Pacientes en espera</h1>
+      <p class="mt-1 text-sm text-gray-500">Registro de pacientes en el flujo clínico</p>
+    </div>
+    <div class="flex gap-3" role="status" aria-live="polite">
+      <div class="flex flex-col items-center rounded-xl bg-amber-50 px-5 py-3 ring-1 ring-amber-200">
+        <span class="text-2xl font-bold text-amber-700">{{ totalWaiting() }}</span>
+        <span class="text-xs font-medium text-amber-600">En espera</span>
+      </div>
+      <div class="flex flex-col items-center rounded-xl bg-blue-50 px-5 py-3 ring-1 ring-blue-200">
+        <span class="text-2xl font-bold text-blue-700">{{ inProgress() }}</span>
+        <span class="text-xs font-medium text-blue-600">En atención</span>
+      </div>
+      @if (totalVirtual() > 0) {
+        <div class="flex flex-col items-center rounded-xl bg-indigo-50 px-5 py-3 ring-1 ring-indigo-200">
+          <span class="text-2xl font-bold text-indigo-700">{{ totalVirtual() }}</span>
+          <span class="text-xs font-medium text-indigo-600"> Virtuales</span>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- RF-10 / RF-18: Panel de acción inline -->
+  @if (activeAction(); as action) {
+    <div class="rounded-2xl bg-white p-5 shadow-sm ring-2 ring-blue-300" role="dialog">
+      <div class="mb-4 flex items-center justify-between">
+        <div>
+          <p class="text-sm font-semibold text-gray-900">
+            {{ action.type === 'transfer' ? ' Transferir' : ' Reprogramar' }}
+            ticket <span class="font-extrabold tracking-wide">{{ action.ticketNumber }}</span>
+          </p>
+          <p class="text-xs text-gray-500">
+            {{ action.type === 'transfer' ? 'Selecciona el servicio destino' : 'Selecciona la nueva prioridad' }}
+          </p>
+        </div>
+        <button type="button" class="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 transition-colors" (click)="cancelAction()" aria-label="Cancelar"></button>
+      </div>
+      @if (action.type === 'transfer') {
+        <div class="flex flex-wrap gap-2">
+          @for (svc of services(); track svc.id) {
+            @if (svc.isActive) {
+              <button type="button" class="flex items-center gap-2 rounded-xl border-2 border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-all hover:border-purple-400 hover:bg-purple-50 hover:text-purple-800" (click)="confirmTransfer(svc.id)">
+                <span class="font-bold text-purple-600">{{ svc.prefix }}</span> {{ svc.name }}
+              </button>
+            }
+          }
+        </div>
+      } @else {
+        <div class="flex gap-3">
+          @for (p of priorities; track p) {
+            <button type="button" class="flex-1 rounded-xl border-2 border-gray-200 py-3 text-sm font-semibold text-gray-700 transition-all hover:border-orange-400 hover:bg-orange-50 hover:text-orange-800" (click)="confirmReschedule(p)">
+              {{ priorityLabels[p] }}
+            </button>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Filtros por estado -->
+  <nav class="flex flex-wrap gap-2" aria-label="Filtrar por estado">
+    @for (f of filters; track f.value) {
+      <button type="button"
+        class="rounded-full border px-4 py-1.5 text-sm font-medium transition-colors"
+        [class.bg-blue-600]="activeFilter() === f.value"
+        [class.text-white]="activeFilter() === f.value"
+        [class.border-blue-600]="activeFilter() === f.value"
+        [class.bg-white]="activeFilter() !== f.value"
+        [class.text-gray-600]="activeFilter() !== f.value"
+        [class.border-gray-300]="activeFilter() !== f.value"
+        (click)="setFilter(f.value)"
+        [attr.aria-pressed]="activeFilter() === f.value">
+        {{ f.label }}
+      </button>
+    }
+  </nav>
+
+  @if (isEmpty()) {
+    <div class="flex flex-col items-center justify-center rounded-2xl bg-white py-20 ring-1 ring-gray-200" role="status">
+      <span class="mb-4 text-5xl" aria-hidden="true"></span>
+      <p class="text-base font-medium text-gray-400">No hay tickets con este estado</p>
+    </div>
+  } @else {
+    <ul class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-label="Lista de tickets">
+      @for (ticket of filteredTickets(); track ticket.id) {
+        <li>
+          <app-ticket-card
+            [ticket]="ticket"
+            (complete)="onComplete($event)"
+            (cancel)="onCancel($event)"
+            (transfer)="onTransfer($event)"
+            (reschedule)="onReschedule($event)"
+          />
+        </li>
+      }
+    </ul>
+  }
+</div>

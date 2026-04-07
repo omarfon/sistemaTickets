@@ -1,0 +1,153 @@
+﻿<article
+  [class]="statusCardClasses()"
+  [attr.aria-label]="'Ticket ' + ticket().number"
+>
+  <!-- ── Header: número + estado + badges ──────────────────────────────── -->
+  <header class="flex flex-wrap items-start justify-between gap-2">
+    <div class="flex items-center gap-2">
+      <span class="text-3xl font-extrabold tracking-widest text-gray-900">{{ ticket().number }}</span>
+      <!-- RF-19: badge cola virtual -->
+      @if (isVirtual()) {
+        <span class="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-blue-700">
+          🌐 Virtual
+        </span>
+      }
+    </div>
+    <div class="flex flex-wrap items-center gap-1.5">
+      <!-- RF-20: sin check-in -->
+      @if (pendingCheckIn()) {
+        <span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase text-amber-700">
+          ⏳ Sin check-in
+        </span>
+      }
+      <span [class]="statusBadgeClasses()" role="status">{{ statusLabels[ticket().status] }}</span>
+    </div>
+  </header>
+
+  <!-- ── Body: datos del ticket ────────────────────────────────────────── -->  <!-- Datos del paciente si está registrado -->
+  @if (ticket().patientName) {
+    <div class="flex items-center gap-2 rounded-xl bg-blue-50 px-3 py-2 ring-1 ring-blue-100">
+      <span class="text-base">👤</span>
+      <div class="min-w-0">
+        <p class="font-semibold text-sm text-blue-900 leading-tight">{{ ticket().patientName }}</p>
+        <p class="text-xs text-blue-600">DNI: {{ ticket().patientDni }}</p>
+      </div>
+    </div>
+  }  <div class="flex items-start justify-between gap-3">
+    <dl class="flex flex-col gap-1.5 text-sm">
+      <div class="flex gap-2">
+        <dt class="w-20 font-normal text-gray-400">Servicio</dt>
+        <dd class="font-medium text-gray-800">{{ ticket().service.name }}</dd>
+      </div>
+      <div class="flex gap-2">
+        <dt class="w-20 font-normal text-gray-400">Prioridad</dt>
+        <dd [class]="'font-medium ' + priorityClasses[ticket().priority]">
+          {{ priorityLabels[ticket().priority] }}
+          @if (ticket().rescheduleCount > 0) {
+            <span class="ml-1 text-[10px] text-gray-400">(×{{ ticket().rescheduleCount }})</span>
+          }
+        </dd>
+      </div>
+      <div class="flex gap-2">
+        <dt class="w-20 font-normal text-gray-400">Canal</dt>
+        <dd class="font-medium text-gray-800">{{ sourceLabels[ticket().source] }}</dd>
+      </div>
+      @if (ticket().assignedWindow) {
+        <div class="flex gap-2">
+          <dt class="w-20 font-normal text-gray-400">{{ ticket().service.windowLabel ?? 'Consultorio' }}</dt>
+          <dd class="font-medium text-gray-800">N° {{ ticket().assignedWindow }}</dd>
+        </div>
+      }
+      @if (ticket().transferredFrom) {
+        <div class="flex gap-2">
+          <dt class="w-20 font-normal text-gray-400">Desde</dt>
+          <dd class="text-xs text-purple-600">🔄 {{ ticket().transferredFrom!.serviceName }}</dd>
+        </div>
+      }
+    </dl>
+
+    <!-- Tiempo -->
+    <div class="flex flex-shrink-0 flex-col items-end gap-0.5">
+      @if (ticket().status === TicketStatus.EnEspera) {
+        <span class="text-xs text-gray-400">Espera est.</span>
+        <span class="text-xl font-bold text-gray-700">{{ ticket().estimatedWaitMinutes }} min</span>
+      } @else if (ticket().status === TicketStatus.EnAtencion) {
+        <span class="text-xs text-gray-400">En atención</span>
+        <span class="text-xl font-bold text-blue-700">{{ elapsedMinutes() }} min</span>
+      } @else {
+        <span class="text-xs text-gray-400">Total</span>
+        <span class="text-xl font-bold text-gray-500">{{ elapsedMinutes() }} min</span>
+      }
+    </div>
+  </div>
+
+  <!-- Notas -->
+  @if (ticket().notes) {
+    <p class="rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-500">
+      <span class="font-semibold text-gray-700">Nota:</span> {{ ticket().notes }}
+    </p>
+  }
+
+  <!-- ── Footer: acciones ──────────────────────────────────────────────── -->
+  <footer class="flex flex-wrap items-center justify-between gap-2 border-t border-gray-100 pt-3">
+    <!-- Acciones principales -->
+    <div class="flex flex-wrap gap-2">
+      @if (canTransfer()) {
+        <button
+          type="button"
+          class="rounded-lg bg-purple-100 px-3 py-1.5 text-xs font-medium text-purple-800 transition-colors hover:bg-purple-200"
+          (click)="transfer.emit(ticket().id)"
+          title="Transferir a otro servicio (RF-18)"
+        >
+          🔄 Transferir
+        </button>
+      }
+      @if (canReschedule()) {
+        <button
+          type="button"
+          class="rounded-lg bg-orange-100 px-3 py-1.5 text-xs font-medium text-orange-800 transition-colors hover:bg-orange-200"
+          (click)="reschedule.emit(ticket().id)"
+          title="Cambiar prioridad (RF-10)"
+        >
+          📅 Reprogramar
+        </button>
+      }
+      @if (canComplete()) {
+        <button
+          type="button"
+          class="rounded-lg bg-emerald-100 px-3 py-1.5 text-xs font-medium text-emerald-800 transition-colors hover:bg-emerald-200"
+          (click)="complete.emit(ticket().id)"
+        >
+          ✅ Atendido
+        </button>
+      }
+      @if (canCancel()) {
+        <button
+          type="button"
+          class="rounded-lg bg-red-100 px-3 py-1.5 text-xs font-medium text-red-700 transition-colors hover:bg-red-200"
+          (click)="cancel.emit(ticket().id)"
+        >
+          ❌ Cancelar
+        </button>
+      }
+    </div>
+
+    <!-- RF-11: Toggle historial -->
+    <button
+      type="button"
+      class="flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+      (click)="showHistory.update(v => !v)"
+      [attr.aria-expanded]="showHistory()"
+    >
+      📋 Historial ({{ historyCount() }})
+      <span class="text-[10px]">{{ showHistory() ? '▲' : '▼' }}</span>
+    </button>
+  </footer>
+
+  <!-- RF-11: Timeline de historial -->
+  @if (showHistory() && ticket().history.length) {
+    <div class="mt-2 rounded-xl bg-gray-50 p-4 ring-1 ring-gray-100">
+      <app-ticket-history [history]="ticket().history" />
+    </div>
+  }
+</article>

@@ -1,0 +1,274 @@
+<!-- RF-40/41/42/43/44/46/48 — Panel de trabajo del operador -->
+<div class="flex flex-col gap-6">
+
+  @if (!operator()) {
+    <div class="flex flex-col items-center justify-center rounded-2xl bg-white py-20 ring-1 ring-gray-200">
+      <span class="mb-4 text-5xl">❌</span>
+      <p class="text-base font-medium text-gray-400">Operador no encontrado</p>
+      <a routerLink="/operadores/login"
+        class="mt-4 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700">
+        Iniciar sesión
+      </a>
+    </div>
+  } @else {
+
+    <!-- ── Cabecera: perfil + estado ──────────────────────────────────────── -->
+    <div class="flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-4">
+        <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-600 text-2xl font-bold text-white shadow">
+          {{ operator()!.name[0] }}
+        </div>
+        <div>
+          <h1 class="text-xl font-bold text-gray-900">{{ operator()!.name }}</h1>
+          <p class="text-sm text-gray-500">{{ operator()!.email }}</p>
+        </div>
+      </div>
+
+      <!-- Estado + acciones de estado (RF-43) -->
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-bold ring-1"
+          [class]="statusCss[operator()!.status]">
+          {{ statusLabels[operator()!.status] }}
+        </span>
+
+        @if (operator()!.status === OperatorStatus.EnPausa) {
+          <button type="button" (click)="endBreak()"
+            class="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700">
+            ▶️ Reanudar
+          </button>
+        }
+
+        @if (operator()!.status === OperatorStatus.Disponible || operator()!.status === OperatorStatus.Ocupado) {
+          <button type="button" (click)="startBreak()"
+            class="rounded-xl border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-800 transition hover:bg-amber-100">
+            ⏸ Pausa
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- ── Feedback ──────────────────────────────────────────────────────── -->
+    @if (message()) {
+      <div class="rounded-xl px-4 py-3 text-sm font-medium ring-1"
+        [class.bg-emerald-50]="message()!.ok"
+        [class.text-emerald-700]="message()!.ok"
+        [class.ring-emerald-200]="message()!.ok"
+        [class.bg-red-50]="!message()!.ok"
+        [class.text-red-700]="!message()!.ok"
+        [class.ring-red-200]="!message()!.ok"
+        role="status">
+        {{ message()!.text }}
+      </div>
+    }
+
+    <!-- ── RF-42: Panel de pausa (visible solo en estado EnPausa) ─────────── -->
+    @if (operator()!.status === OperatorStatus.EnPausa) {
+      <div class="rounded-2xl bg-amber-50 p-5 ring-1 ring-amber-200">
+        <p class="text-sm font-semibold text-amber-800">⏸ En pausa — {{ operator()!.breakReason }}</p>
+        <p class="mt-1 text-xs text-amber-600">Haz clic en "Reanudar" para volver a estar disponible.</p>
+      </div>
+    }
+
+    <!-- ── RF-42: Iniciar pausa (solo si Disponible/Ocupado) ──────────────── -->
+    @if (operator()!.status === OperatorStatus.Disponible || operator()!.status === OperatorStatus.Ocupado) {
+      @if (!operator()!.breakReason) {
+        <section class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-200">
+          <h2 class="mb-3 text-sm font-semibold text-gray-700">RF-42 — Solicitar pausa</h2>
+          <div class="flex gap-3">
+            <input type="text" [(ngModel)]="breakReason"
+              placeholder="Motivo: Refrigerio, Baño, Reunión…"
+              class="flex-1 rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-100" />
+            <button type="button" (click)="startBreak()"
+              class="rounded-xl bg-amber-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-amber-600">
+              ⏸ Pausar
+            </button>
+          </div>
+        </section>
+      }
+    }
+
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+
+      <!-- Columna izquierda: ventanilla + ticket actual -->
+      <div class="flex flex-col gap-6 lg:col-span-2">
+
+        <!-- ── RF-43: Info de ventanilla asignada ────────────────────────── -->
+        @if (windowSummary()) {
+          <section class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-200">
+            <div class="mb-3 flex items-center justify-between">
+              <h2 class="text-sm font-semibold text-gray-700">🪟 {{ windowSummary()!.window.name }}</h2>
+              <span class="text-xs text-gray-400">
+                {{ windowSummary()!.queuedTickets.length }} en cola
+              </span>
+            </div>
+
+            <!-- RF-40: Tomar siguiente -->
+            @if (operator()!.status === OperatorStatus.Disponible) {
+              <button type="button" (click)="takeNext()"
+                class="w-full rounded-xl bg-blue-600 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700 disabled:opacity-50"
+                [disabled]="windowSummary()!.queuedTickets.length === 0">
+                🎫 Tomar siguiente ticket
+                @if (windowSummary()!.queuedTickets.length === 0) {
+                  &nbsp;(cola vacía)
+                }
+              </button>
+            }
+
+            <!-- Próximos tickets en cola -->
+            @if (windowSummary()!.queuedTickets.length > 0) {
+              <div class="mt-4">
+                <p class="mb-2 text-xs font-medium text-gray-500">Próximos en cola:</p>
+                <ul class="flex flex-col gap-2">
+                  @for (t of windowSummary()!.queuedTickets.slice(0, 5); track t.id) {
+                    <li class="flex items-center justify-between rounded-xl bg-gray-50 px-3 py-2 ring-1 ring-gray-200">
+                      <span class="font-bold text-gray-900">{{ t.number }}</span>
+                      <span class="text-xs text-gray-500">{{ t.patientName ?? 'Anónimo' }}</span>
+                      <span class="text-xs font-medium text-gray-600">{{ priorityLabels[t.priority] }}</span>
+                    </li>
+                  }
+                </ul>
+              </div>
+            }
+          </section>
+        } @else {
+          <section class="flex flex-col items-center justify-center rounded-2xl bg-white py-10 shadow-sm ring-1 ring-gray-200">
+            <span class="text-4xl">🪟</span>
+            <p class="mt-2 text-sm text-gray-400">Sin ventanilla asignada</p>
+            <a routerLink="/operadores/supervision"
+              class="mt-3 text-xs text-blue-600 hover:underline">Solicitar asignación</a>
+          </section>
+        }
+
+        <!-- ── RF-40/41: Ticket en atención ahora ───────────────────────── -->
+        @if (currentTicket()) {
+          <section class="rounded-2xl bg-blue-50 p-5 ring-1 ring-blue-200">
+            <div class="mb-4 flex items-center justify-between">
+              <h2 class="text-sm font-semibold text-blue-800">🎫 Atendiendo ahora</h2>
+              <span class="text-xl font-bold text-blue-900">{{ currentTicket()!.number }}</span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 text-sm">
+              <div>
+                <p class="text-xs text-blue-500">Paciente</p>
+                <p class="font-semibold text-blue-900">{{ currentTicket()!.patientName ?? 'Anónimo' }}</p>
+              </div>
+              <div>
+                <p class="text-xs text-blue-500">Servicio</p>
+                <p class="font-semibold text-blue-900">{{ currentTicket()!.service.name }}</p>
+              </div>
+              <div>
+                <p class="text-xs text-blue-500">Prioridad</p>
+                <p class="font-semibold text-blue-900">{{ priorityLabels[currentTicket()!.priority] }}</p>
+              </div>
+              @if (currentTicket()!.patientDni) {
+                <div>
+                  <p class="text-xs text-blue-500">DNI</p>
+                  <p class="font-semibold text-blue-900">{{ currentTicket()!.patientDni }}</p>
+                </div>
+              }
+            </div>
+
+            <!-- RF-41: Finalizar -->
+            <div class="mt-4 flex flex-col gap-3">
+              <input type="text" [(ngModel)]="finishNotes"
+                placeholder="Notas de cierre (opcional)"
+                class="w-full rounded-xl border border-blue-200 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100" />
+              <div class="flex gap-3">
+                <button type="button" (click)="finish()"
+                  class="flex-1 rounded-xl bg-emerald-600 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700">
+                  ✅ Finalizar atención
+                </button>
+                <!-- RF-46: Transferir -->
+                <div class="flex flex-1 gap-2">
+                  <select [(ngModel)]="transferTargetId"
+                    class="flex-1 rounded-xl border border-gray-300 px-2 py-2 text-xs focus:border-blue-500 focus:outline-none">
+                    <option value="">Transferir a…</option>
+                    @for (target of transferTargets(); track target.window.id) {
+                      <option [value]="target.window.id">{{ target.window.name }}</option>
+                    }
+                  </select>
+                  <button type="button" (click)="transfer()" [disabled]="!transferTargetId"
+                    class="rounded-xl bg-gray-200 px-3 text-xs font-medium text-gray-700 transition hover:bg-gray-300 disabled:opacity-40">
+                    →
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+        }
+
+      </div>
+
+      <!-- Columna derecha: notificaciones + historial -->
+      <div class="flex flex-col gap-6">
+
+        <!-- ── RF-48: Notificaciones ─────────────────────────────────────── -->
+        <section class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-200">
+          <div class="mb-3 flex items-center justify-between">
+            <h2 class="text-sm font-semibold text-gray-700">
+              🔔 Notificaciones
+              @if (notifications().length > 0) {
+                <span class="ml-1.5 inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-bold text-red-700">
+                  {{ notifications().length }}
+                </span>
+              }
+            </h2>
+            @if (notifications().length > 0) {
+              <button type="button" (click)="markAllRead()"
+                class="text-xs text-gray-400 transition hover:text-gray-700">
+                Marcar todas leídas
+              </button>
+            }
+          </div>
+
+          @if (notifications().length === 0) {
+            <p class="text-center text-xs text-gray-400 py-4">Sin notificaciones nuevas</p>
+          } @else {
+            <ul class="flex flex-col gap-2">
+              @for (n of notifications(); track n.id) {
+                <li class="flex items-start justify-between gap-2 rounded-xl px-3 py-2.5 ring-1"
+                  [class.bg-red-50]="n.type === 'urgent'"
+                  [class.ring-red-200]="n.type === 'urgent'"
+                  [class.bg-amber-50]="n.type === 'warning'"
+                  [class.ring-amber-200]="n.type === 'warning'"
+                  [class.bg-gray-50]="n.type === 'info'"
+                  [class.ring-gray-200]="n.type === 'info'">
+                  <p class="text-xs text-gray-700">{{ n.message }}</p>
+                  <button type="button" (click)="markRead(n.id)"
+                    class="flex-shrink-0 text-xs text-gray-400 hover:text-gray-600">✕</button>
+                </li>
+              }
+            </ul>
+          }
+        </section>
+
+        <!-- ── RF-44: Historial de atención ──────────────────────────────── -->
+        <section class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-200">
+          <h2 class="mb-3 text-sm font-semibold text-gray-700">📋 Historial de hoy</h2>
+
+          @if (!operator()!.history.length) {
+            <p class="text-center text-xs text-gray-400 py-4">Sin atenciones registradas</p>
+          } @else {
+            <ul class="flex flex-col gap-2">
+              @for (h of operator()!.history.slice(0, 8); track h.ticketId) {
+                <li class="rounded-xl bg-gray-50 p-3 ring-1 ring-gray-200">
+                  <div class="flex items-center justify-between">
+                    <span class="font-bold text-gray-900">{{ h.ticketNumber }}</span>
+                    <span class="text-xs text-gray-400">{{ h.durationMinutes }} min</span>
+                  </div>
+                  <p class="mt-0.5 text-xs text-gray-600 truncate">{{ h.patientName }}</p>
+                  <p class="text-[10px] text-gray-400">{{ h.serviceName }}</p>
+                </li>
+              }
+            </ul>
+            <p class="mt-2 text-center text-xs text-gray-400">
+              Total atendidos: {{ operator()!.attendedCount }}
+            </p>
+          }
+        </section>
+
+      </div>
+    </div>
+  }
+
+</div>

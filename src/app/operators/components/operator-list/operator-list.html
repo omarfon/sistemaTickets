@@ -1,0 +1,190 @@
+<!-- RF-47 / RF-45 / RF-50 — Supervisión de operadores en tiempo real -->
+<div class="flex flex-col gap-6">
+
+  <!-- ── Cabecera con stat chips ──────────────────────────────────────────── -->
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Supervisión de Operadores</h1>
+      <p class="mt-1 text-sm text-gray-500">Estado en tiempo real del equipo de atención</p>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-3" role="status" aria-live="polite">
+      <div class="flex flex-col items-center rounded-xl bg-emerald-50 px-5 py-3 ring-1 ring-emerald-200">
+        <span class="text-2xl font-bold text-emerald-700">{{ totalAvail() }}</span>
+        <span class="text-xs font-medium text-emerald-600">Disponibles</span>
+      </div>
+      <div class="flex flex-col items-center rounded-xl bg-blue-50 px-5 py-3 ring-1 ring-blue-200">
+        <span class="text-2xl font-bold text-blue-700">{{ totalBusy() }}</span>
+        <span class="text-xs font-medium text-blue-600">Ocupados</span>
+      </div>
+      @if (totalBreak() > 0) {
+        <div class="flex flex-col items-center rounded-xl bg-amber-50 px-5 py-3 ring-1 ring-amber-200">
+          <span class="text-2xl font-bold text-amber-700">{{ totalBreak() }}</span>
+          <span class="text-xs font-medium text-amber-600">En pausa</span>
+        </div>
+      }
+      <div class="flex flex-col items-center rounded-xl bg-gray-50 px-5 py-3 ring-1 ring-gray-200">
+        <span class="text-2xl font-bold text-gray-500">{{ totalOffline() }}</span>
+        <span class="text-xs font-medium text-gray-400">Offline</span>
+      </div>
+
+      <!-- Acciones -->
+      <a routerLink="/operadores/nuevo"
+        class="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700">
+        <span>➕</span><span>Nuevo operador</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- ── RF-48: Broadcast de notificación ─────────────────────────────────── -->
+  <div class="flex flex-wrap items-center gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-200">
+    <span class="text-sm font-medium text-gray-700">📢 Enviar aviso al equipo:</span>
+    <input
+      type="text"
+      [value]="broadcastMsg()"
+      (input)="broadcastMsg.set($any($event.target).value)"
+      placeholder="Escribe el mensaje…"
+      class="flex-1 rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+    />
+    <button type="button" (click)="sendBroadcast()"
+      class="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700">
+      Enviar
+    </button>
+    @if (broadcastSent()) {
+      <span class="text-xs text-emerald-600">✓ Enviado a todos</span>
+    }
+  </div>
+
+  <!-- ── Filtros (pills) ───────────────────────────────────────────────────── -->
+  <nav class="flex flex-wrap gap-2" aria-label="Filtrar operadores">
+    @for (opt of filterOptions; track opt.value) {
+      <button type="button"
+        class="rounded-full border px-4 py-1.5 text-sm font-medium transition-colors"
+        [class.bg-blue-600]="activeFilter() === opt.value"
+        [class.text-white]="activeFilter() === opt.value"
+        [class.border-blue-600]="activeFilter() === opt.value"
+        [class.bg-white]="activeFilter() !== opt.value"
+        [class.text-gray-600]="activeFilter() !== opt.value"
+        [class.border-gray-300]="activeFilter() !== opt.value"
+        (click)="setFilter(opt.value)"
+        [attr.aria-pressed]="activeFilter() === opt.value">
+        {{ opt.label }}
+      </button>
+    }
+  </nav>
+
+  <!-- ── Grid de tarjetas ──────────────────────────────────────────────────── -->
+  @if (filteredOperators().length === 0) {
+    <div class="flex flex-col items-center justify-center rounded-2xl bg-white py-20 ring-1 ring-gray-200" role="status">
+      <span class="mb-4 text-5xl" aria-hidden="true">👥</span>
+      <p class="text-base font-medium text-gray-400">No hay operadores con este filtro</p>
+    </div>
+  } @else {
+    <ul class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-label="Lista de operadores">
+      @for (op of filteredOperators(); track op.id) {
+        @let m = metricsOf(op.id);
+        <li>
+          <article class="flex flex-col gap-3 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-200 transition-shadow hover:shadow-md">
+
+            <!-- Cabecera: avatar + nombre + estado -->
+            <header class="flex items-start justify-between gap-3">
+              <div class="flex items-center gap-3 min-w-0">
+                <!-- Avatar -->
+                <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white">
+                  {{ op.name[0] }}
+                </div>
+                <div class="min-w-0">
+                  <p class="truncate font-bold text-gray-900">{{ op.name }}</p>
+                  <p class="truncate text-xs text-gray-400">{{ op.email }}</p>
+                </div>
+              </div>
+              <!-- Dot + status badge -->
+              <div class="flex flex-shrink-0 flex-col items-end gap-1">
+                <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold ring-1"
+                  [class]="statusCss[op.status]">
+                  <span class="h-1.5 w-1.5 rounded-full" [class]="statusDot[op.status]"></span>
+                  {{ statusLabels[op.status] }}
+                </span>
+                <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ring-1"
+                  [class]="roleCss[op.role]">
+                  {{ roleIcon[op.role] }} {{ roleLabels[op.role] }}
+                </span>
+              </div>
+            </header>
+
+            <!-- Ventanilla asignada -->
+            @if (op.assignedWindowId) {
+              <div class="flex items-center gap-1.5 text-xs text-gray-500">
+                <span>🪟</span>
+                <span>Ventanilla: <strong class="text-gray-800">{{ op.assignedWindowId }}</strong></span>
+              </div>
+            } @else {
+              <p class="text-xs text-gray-400">Sin ventanilla asignada</p>
+            }
+
+            <!-- Pausa activa -->
+            @if (op.status === OperatorStatus.EnPausa && op.breakReason) {
+              <div class="rounded-xl bg-amber-50 px-3 py-2 ring-1 ring-amber-200">
+                <p class="text-xs font-medium text-amber-700">⏸ {{ op.breakReason }}</p>
+              </div>
+            }
+
+            <!-- RF-45: Métricas KPI -->
+            @if (m) {
+              <div class="grid grid-cols-3 gap-2 text-center">
+                <div class="rounded-xl bg-gray-50 p-2">
+                  <p class="text-lg font-bold text-gray-800">{{ m.attendedToday }}</p>
+                  <p class="text-[10px] text-gray-400">Atendidos</p>
+                </div>
+                <div class="rounded-xl bg-gray-50 p-2">
+                  <p class="text-lg font-bold text-gray-800">{{ m.avgDurationMinutes }}<span class="text-[10px]">m</span></p>
+                  <p class="text-[10px] text-gray-400">Prom. atención</p>
+                </div>
+                <div class="rounded-xl bg-gray-50 p-2">
+                  <p class="text-lg font-bold text-gray-800">{{ m.efficiency }}<span class="text-[10px]">%</span></p>
+                  <p class="text-[10px] text-gray-400">Eficiencia</p>
+                </div>
+              </div>
+
+              <!-- RF-50: Score de desempeño -->
+              <div>
+                <div class="mb-1 flex items-center justify-between">
+                  <span class="text-xs text-gray-500">Desempeño (RF-50)</span>
+                  <span class="text-sm font-bold" [class]="scoreColor(m.score)">{{ m.score }}/100</span>
+                </div>
+                <div class="h-2 w-full overflow-hidden rounded-full bg-gray-100">
+                  <div class="h-full rounded-full transition-all" [class]="scoreBar(m.score)"
+                    [style.width.%]="m.score"></div>
+                </div>
+              </div>
+            }
+
+            <!-- Notificaciones no leídas -->
+            @if (unreadNotifs(op.notifications) > 0) {
+              <div class="flex items-center gap-1.5 text-xs text-amber-700">
+                <span>🔔</span>
+                <span>{{ unreadNotifs(op.notifications) }} notificaciones sin leer</span>
+              </div>
+            }
+
+            <!-- Footer: acciones -->
+            <footer class="flex items-center gap-2 border-t border-gray-100 pt-3">
+              <a [routerLink]="['/operadores', op.id, 'editar']"
+                class="flex-1 rounded-lg bg-gray-100 px-3 py-1.5 text-center text-xs font-medium text-gray-700 transition hover:bg-gray-200">
+                ✏️ Editar
+              </a>
+              @if (op.status !== OperatorStatus.Offline) {
+                <a [routerLink]="['/operadores', op.id, 'panel']"
+                  class="flex-1 rounded-lg bg-blue-100 px-3 py-1.5 text-center text-xs font-medium text-blue-800 transition hover:bg-blue-200">
+                  🖥️ Panel
+                </a>
+              }
+            </footer>
+
+          </article>
+        </li>
+      }
+    </ul>
+  }
+
+</div>

@@ -1,0 +1,184 @@
+<!-- RF-24 / RF-25 / RF-31 / RF-34 — Panel de operador de ventanilla -->
+<div class="flex flex-col gap-6">
+
+  @if (!summary()) {
+    <div class="flex flex-col items-center py-20 text-gray-400">
+      <span class="mb-3 text-5xl">🔍</span>
+      <p class="text-sm">Módulo no encontrado.</p>
+      <a routerLink="/ventanillas/dashboard" class="mt-4 text-sm text-blue-600 hover:underline">← Volver al dashboard</a>
+    </div>
+  } @else {
+
+    <!-- Cabecera -->
+    <div class="flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-4">
+        <a routerLink="/ventanillas/dashboard"
+          class="text-sm text-gray-400 hover:text-blue-600 transition-colors">← Volver</a>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="h-3 w-3 rounded-full flex-shrink-0" [class]="statusDot[summary()!.window.status]"></span>
+            <h1 class="text-xl font-bold text-gray-900">{{ summary()!.window.name }}</h1>
+            <span class="rounded-full px-2.5 py-1 text-xs font-bold ring-1" [class]="statusCss[summary()!.window.status]">
+              {{ statusLabels[summary()!.window.status] }}
+            </span>
+          </div>
+          @if (summary()!.window.operatorName) {
+            <p class="mt-1 text-sm text-gray-500">👤 {{ summary()!.window.operatorName }}</p>
+          }
+        </div>
+      </div>
+
+      <!-- Controles de estado -->
+      <div class="flex gap-2">
+        <button type="button" (click)="openWindow()"
+          class="rounded-lg bg-emerald-100 px-3 py-1.5 text-xs font-medium text-emerald-800 hover:bg-emerald-200 transition-colors">
+          🟢 Abrir
+        </button>
+        <button type="button" (click)="closeWindow()"
+          class="rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-200 transition-colors">
+          🔴 Cerrar
+        </button>
+        <button type="button" (click)="setMaintenance()"
+          class="rounded-lg bg-amber-100 px-3 py-1.5 text-xs font-medium text-amber-800 hover:bg-amber-200 transition-colors">
+          🔧 Mantenimiento
+        </button>
+        <button type="button" (click)="rebalance()"
+          class="rounded-lg bg-blue-100 px-3 py-1.5 text-xs font-medium text-blue-800 hover:bg-blue-200 transition-colors"
+          title="RF-31: Redistribuir cola entre módulos disponibles">
+          ⚖️ Rebalancear
+        </button>
+        <a [routerLink]="['/ventanillas', summary()!.window.id, 'editar']"
+          class="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+          ✏️ Editar
+        </a>
+      </div>
+    </div>
+
+    <!-- Toast de mensaje -->
+    @if (message()) {
+      <div class="rounded-xl px-4 py-3 text-sm font-medium ring-1"
+        [class.bg-emerald-50]="message()!.ok"
+        [class.text-emerald-700]="message()!.ok"
+        [class.ring-emerald-200]="message()!.ok"
+        [class.bg-red-50]="!message()!.ok"
+        [class.text-red-700]="!message()!.ok"
+        [class.ring-red-200]="!message()!.ok">
+        {{ message()!.ok ? '✅' : '⚠️' }} {{ message()!.text }}
+      </div>
+    }
+
+    <!-- Grid principal -->
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+
+      <!-- ── RF-34: Cola de tickets ──────────────────────────────────────── -->
+      <div class="flex flex-col gap-4 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
+        <div class="flex items-center justify-between">
+          <h2 class="text-sm font-semibold text-gray-800">Cola de esta ventanilla</h2>
+          <span class="text-xs text-gray-400">{{ summary()!.queuedTickets.length }} tickets</span>
+        </div>
+
+        <!-- RF-24: Asignación automática -->
+        <button type="button" (click)="autoAssign()"
+          [disabled]="summary()!.queuedTickets.length === 0"
+          class="w-full rounded-xl bg-blue-600 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+          🎯 Llamar siguiente ticket (Auto-asignar)
+        </button>
+
+        <!-- Ticket en atención -->
+        @if (summary()!.currentTicket) {
+          <div class="rounded-xl bg-blue-50 px-4 py-3 ring-1 ring-blue-200">
+            <p class="text-[10px] font-bold uppercase tracking-widest text-blue-500">En consulta ahora</p>
+            <p class="mt-1 text-2xl font-black text-blue-900">{{ summary()!.currentTicket!.number }}</p>
+            @if (summary()!.currentTicket!.patientName) {
+              <p class="mt-1 text-sm text-blue-700">{{ summary()!.currentTicket!.patientName }}</p>
+            }
+            @if (summary()!.currentTicket!.patientDni) {
+              <p class="text-xs text-blue-500">DNI: {{ summary()!.currentTicket!.patientDni }}</p>
+            }
+          </div>
+        }
+
+        <!-- Lista de tickets en espera -->
+        @if (summary()!.queuedTickets.length === 0) {
+          <div class="flex flex-col items-center py-8 text-gray-300">
+            <span class="mb-2 text-4xl">📭</span>
+            <p class="text-xs">Cola vacía</p>
+          </div>
+        } @else {
+          <ul class="flex flex-col gap-2 max-h-72 overflow-y-auto pr-1">
+            @for (ticket of summary()!.queuedTickets; track ticket.id; let pos = $index) {
+              <li
+                class="flex cursor-pointer items-center gap-3 rounded-xl p-3 ring-1 transition-colors"
+                [class.ring-blue-300]="selectedTicketId() === ticket.id"
+                [class.bg-blue-50]="selectedTicketId() === ticket.id"
+                [class.ring-gray-200]="selectedTicketId() !== ticket.id"
+                [class.bg-white]="selectedTicketId() !== ticket.id"
+                (click)="selectedTicketId.set(ticket.id)">
+                <span class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-bold text-gray-500">
+                  {{ pos + 1 }}
+                </span>
+                <div class="min-w-0 flex-1">
+                  <p class="font-bold text-gray-900">{{ ticket.number }}</p>
+                  @if (ticket.patientName) {
+                    <p class="truncate text-xs text-gray-500">{{ ticket.patientName }}</p>
+                  }
+                </div>
+                <span class="text-xs text-gray-400">{{ priorityLabels[ticket.priority] }}</span>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+
+      <!-- ── RF-25: Panel de transferencia ───────────────────────────────── -->
+      <div class="flex flex-col gap-4 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
+        <h2 class="text-sm font-semibold text-gray-800">Transferir ticket</h2>
+
+        @if (summary()!.queuedTickets.length === 0) {
+          <p class="text-xs text-gray-400">No hay tickets en la cola para transferir.</p>
+        } @else {
+          <p class="text-xs text-gray-500">
+            Ticket seleccionado:
+            <span class="font-semibold text-gray-800">{{ selectedTicketLabel() }}</span>
+            <span class="ml-1 text-gray-400">— selecciona uno en la cola de la izquierda.</span>
+          </p>
+        }
+
+        <div>
+          <label class="mb-1 block text-xs font-medium text-gray-600">Módulo destino</label>
+          <select name="transferTarget" [(ngModel)]="transferTargetId"
+            class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none">
+            <option value="">Seleccionar módulo…</option>
+            @for (t of transferTargets(); track t.window.id) {
+              <option [value]="t.window.id">
+                {{ t.window.name }}
+                ({{ t.queuedTickets.length }} en cola)
+                — {{ statusLabels[t.window.status] }}
+              </option>
+            }
+          </select>
+        </div>
+
+        <button type="button" (click)="transfer()"
+          [disabled]="!selectedTicketId() || !transferTargetId"
+          class="rounded-xl bg-indigo-600 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+          🔀 Transferir ticket
+        </button>
+
+        <!-- Métricas rápidas -->
+        <div class="mt-2 grid grid-cols-2 gap-3 text-center border-t border-gray-100 pt-4">
+          <div class="rounded-xl bg-gray-50 p-3">
+            <p class="text-2xl font-bold text-gray-700">{{ summary()!.window.attendedCount }}</p>
+            <p class="text-[10px] text-gray-400">Atendidos hoy</p>
+          </div>
+          <div class="rounded-xl bg-gray-50 p-3">
+            <p class="text-2xl font-bold text-gray-700">{{ summary()!.avgWaitMinutes }}<span class="text-xs font-normal"> min</span></p>
+            <p class="text-[10px] text-gray-400">Espera estimada</p>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /grid -->
+  }
+
+</div>

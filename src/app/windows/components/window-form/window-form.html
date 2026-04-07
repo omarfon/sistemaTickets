@@ -1,0 +1,233 @@
+<!-- RF-21 / RF-22 / RF-26 / RF-30 / RF-32 — Formulario de ventanilla -->
+<div class="flex flex-col gap-6">
+
+  <!-- ── Cabecera (patrón estándar) ─────────────────────────────────── -->
+  <div class="flex items-center gap-3">
+    <a routerLink="/ventanillas"
+       class="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-500 shadow-sm transition-colors hover:bg-gray-50 hover:text-blue-600">
+      ← Volver
+    </a>
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">
+        {{ isEdit() ? '✏️ Editar módulo' : '➕ Nuevo módulo / ventanilla' }}
+      </h1>
+      <p class="mt-0.5 text-sm text-gray-500">
+        {{ isEdit() ? 'Modifica la configuración del puesto de atención' : 'Configura un nuevo puesto de atención clínica' }}
+      </p>
+    </div>
+  </div>
+
+  <div class="mx-auto w-full max-w-2xl">
+
+  <!-- Error general -->
+  @if (error()) {
+    <div class="mb-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700 ring-1 ring-red-200">
+      ⚠️ {{ error() }}
+    </div>
+  }
+
+  <form (ngSubmit)="save()" class="flex flex-col gap-6">
+
+    <!-- ── Datos básicos ─────────────────────────────────────────────── -->
+    <section class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
+      <h2 class="mb-4 text-sm font-semibold text-gray-700">Datos básicos</h2>
+
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <!-- Nombre -->
+        <div class="sm:col-span-2">
+          <label class="mb-1 block text-xs font-medium text-gray-600" for="name">
+            Nombre del módulo *
+          </label>
+          <input
+            id="name" name="name" type="text" required
+            [(ngModel)]="name"
+            placeholder="Ej: Módulo A1, Consultorio 3…"
+            class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100" />
+        </div>
+
+        <!-- Número -->
+        <div>
+          <label class="mb-1 block text-xs font-medium text-gray-600" for="number">
+            Número de ventanilla
+          </label>
+          <input
+            id="number" name="number" type="number" min="1" max="99"
+            [(ngModel)]="number"
+            class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100" />
+        </div>
+
+        <!-- Paso clínico -->
+        <div>
+          <label class="mb-1 block text-xs font-medium text-gray-600" for="step">
+            Paso clínico
+          </label>
+          <select
+            id="step" name="step"
+            [(ngModel)]="step"
+            class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+            @for (opt of stepOptions; track opt.value) {
+              <option [value]="opt.value">{{ opt.label }}</option>
+            }
+          </select>
+        </div>
+
+        <!-- Operador -->
+        <div class="sm:col-span-2">
+          <label class="mb-1 block text-xs font-medium text-gray-600" for="operator">
+            Nombre del operador
+          </label>
+          <input
+            id="operator" name="operatorName" type="text"
+            [(ngModel)]="operatorName"
+            placeholder="Nombre del profesional de salud"
+            class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100" />
+        </div>
+      </div>
+    </section>
+
+    <!-- ── RF-22: Servicios asignados ──────────────────────────────────── -->
+    <section class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
+      <h2 class="mb-1 text-sm font-semibold text-gray-700">Servicios asignados</h2>
+      <p class="mb-4 text-xs text-gray-400">La ventanilla solo atenderá los servicios seleccionados.</p>
+
+      <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+        @for (svc of allServices(); track svc.id) {
+          <label class="flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition-colors"
+            [class.border-blue-300]="isServiceSelected(svc.id)"
+            [class.bg-blue-50]="isServiceSelected(svc.id)"
+            [class.border-gray-200]="!isServiceSelected(svc.id)">
+            <input type="checkbox"
+              class="mt-0.5 h-4 w-4 rounded text-blue-600"
+              [checked]="isServiceSelected(svc.id)"
+              (change)="toggleService(svc.id)" />
+            <span class="flex flex-col">
+              <span class="text-sm font-medium text-gray-900">{{ svc.name }}</span>
+              <span class="text-xs text-gray-400">{{ svc.description }}</span>
+            </span>
+          </label>
+        }
+      </div>
+    </section>
+
+    <!-- ── RF-26: Filtro de prioridades ────────────────────────────────── -->
+    <section class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
+      <h2 class="mb-1 text-sm font-semibold text-gray-700">Prioridades atendidas</h2>
+      <p class="mb-4 text-xs text-gray-400">Sin selección = atiende todos. Con selección = solo esas prioridades.</p>
+
+      <div class="flex flex-wrap gap-2">
+        @for (p of allPriorities; track p.value) {
+          <button type="button"
+            class="rounded-full border px-4 py-1.5 text-sm font-medium transition-colors"
+            [class.bg-blue-600]="isPrioritySelected(p.value)"
+            [class.text-white]="isPrioritySelected(p.value)"
+            [class.border-blue-600]="isPrioritySelected(p.value)"
+            [class.bg-white]="!isPrioritySelected(p.value)"
+            [class.text-gray-600]="!isPrioritySelected(p.value)"
+            [class.border-gray-300]="!isPrioritySelected(p.value)"
+            (click)="togglePriority(p.value)">
+            {{ p.label }}
+          </button>
+        }
+      </div>
+    </section>
+
+    <!-- ── RF-30: Capacidad y umbrales ────────────────────────────────── -->
+    <section class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
+      <h2 class="mb-4 text-sm font-semibold text-gray-700">Capacidad y alertas</h2>
+
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div>
+          <label class="mb-1 block text-xs font-medium text-gray-600" for="maxQ">
+            Capacidad máxima de cola
+          </label>
+          <input id="maxQ" name="maxQueueSize" type="number" min="0"
+            [(ngModel)]="maxQueueSize"
+            class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100" />
+          <p class="mt-1 text-[10px] text-gray-400">0 = ilimitado</p>
+        </div>
+        <div>
+          <label class="mb-1 block text-xs font-medium text-amber-600" for="warn">
+            ⚠️ Umbral de advertencia
+          </label>
+          <input id="warn" name="warnThreshold" type="number" min="1"
+            [(ngModel)]="warnThreshold"
+            class="w-full rounded-xl border border-amber-300 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-100" />
+        </div>
+        <div>
+          <label class="mb-1 block text-xs font-medium text-red-600" for="crit">
+            🚨 Umbral crítico
+          </label>
+          <input id="crit" name="criticalThreshold" type="number" min="1"
+            [(ngModel)]="criticalThreshold"
+            class="w-full rounded-xl border border-red-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-100" />
+        </div>
+      </div>
+    </section>
+
+    <!-- ── RF-32: Horarios de atención ────────────────────────────────── -->
+    <section class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
+      <h2 class="mb-4 text-sm font-semibold text-gray-700">Horarios de atención</h2>
+
+      <!-- Franjas existentes -->
+      @if (scheduleSlots().length === 0) {
+        <p class="mb-4 text-xs text-gray-400">Sin horario configurado — atenderá en cualquier momento.</p>
+      } @else {
+        <ul class="mb-4 flex flex-col gap-2">
+          @for (slot of scheduleSlots(); track $index) {
+            <li class="flex items-center justify-between rounded-xl bg-gray-50 px-4 py-2 ring-1 ring-gray-200">
+              <span class="text-sm text-gray-800">
+                <strong>{{ dayNames[slot.day] }}</strong>
+                &nbsp;{{ slot.startTime }} — {{ slot.endTime }}
+              </span>
+              <button type="button" (click)="removeSlot($index)"
+                class="text-xs text-red-400 hover:text-red-600">✕</button>
+            </li>
+          }
+        </ul>
+      }
+
+      <!-- Agregar franja -->
+      <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div>
+          <label class="mb-1 block text-[10px] text-gray-500">Día</label>
+          <select name="newSlotDay" [(ngModel)]="newSlotDay"
+            class="w-full rounded-xl border border-gray-300 px-2 py-1.5 text-xs focus:border-blue-500 focus:outline-none">
+            @for (d of dayNames; track $index) {
+              <option [value]="$index">{{ d }}</option>
+            }
+          </select>
+        </div>
+        <div>
+          <label class="mb-1 block text-[10px] text-gray-500">Desde</label>
+          <input type="time" name="newSlotStart" [(ngModel)]="newSlotStart"
+            class="w-full rounded-xl border border-gray-300 px-2 py-1.5 text-xs focus:border-blue-500 focus:outline-none" />
+        </div>
+        <div>
+          <label class="mb-1 block text-[10px] text-gray-500">Hasta</label>
+          <input type="time" name="newSlotEnd" [(ngModel)]="newSlotEnd"
+            class="w-full rounded-xl border border-gray-300 px-2 py-1.5 text-xs focus:border-blue-500 focus:outline-none" />
+        </div>
+        <div class="flex items-end">
+          <button type="button" (click)="addSlot()"
+            class="w-full rounded-xl bg-gray-100 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-200 transition-colors">
+            ＋ Agregar
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Botones ────────────────────────────────────────────────────── -->
+    <div class="flex justify-end gap-3 border-t border-gray-100 pt-2">
+      <a routerLink="/ventanillas"
+        class="rounded-xl border border-gray-300 bg-white px-6 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+        Cancelar
+      </a>
+      <button type="submit" [disabled]="saving()"
+        class="rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:opacity-50 transition-colors">
+        {{ saving() ? 'Guardando…' : (isEdit() ? 'Guardar cambios' : 'Crear módulo') }}
+      </button>
+    </div>
+
+  </form>
+  </div>
+</div>

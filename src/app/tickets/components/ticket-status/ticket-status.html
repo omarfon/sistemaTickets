@@ -1,0 +1,113 @@
+﻿<div class="flex flex-col gap-6">
+  <div>
+    <h1 class="text-2xl font-bold text-gray-900">Panel del Operador</h1>
+    <p class="mt-1 text-sm text-gray-500">Llama y gestiona la atención de pacientes</p>
+  </div>
+  <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
+    <h2 class="mb-4 text-base font-semibold text-gray-800">Llamar siguiente paciente</h2>
+    <div class="flex flex-wrap items-end gap-4" [formGroup]="windowForm">
+      <div class="flex min-w-40 flex-1 flex-col gap-1.5">
+        <label for="op-service" class="text-sm font-medium text-gray-700">Servicio</label>
+        <select id="op-service" formControlName="serviceId"
+          class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+          <option value="" disabled>Seleccionar</option>
+          @for (summary of queueSummaries(); track summary.service.id) {
+            <option [value]="summary.service.id">{{ summary.service.name }} ({{ summary.waitingCount }} en espera)</option>
+          }
+        </select>
+      </div>
+      <div class="flex w-28 flex-col gap-1.5">
+        <label for="op-window" class="text-sm font-medium text-gray-700">Consultorio / Módulo Nº</label>
+        <input id="op-window" type="number" formControlName="windowNumber" min="1"
+          class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+          aria-label="Numero de ventanilla" />
+      </div>
+      <button type="button"
+        class="flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+        [disabled]="windowForm.invalid" (click)="callNext()" aria-label="Llamar siguiente paciente">
+        Llamar paciente
+      </button>
+    </div>
+  </div>
+  @if (lastCalledNumber(); as num) {
+    <div class="flex flex-col items-center rounded-2xl bg-blue-50 py-8 ring-2 ring-blue-200" role="status" aria-live="assertive">
+      <p class="mb-1 text-sm font-semibold uppercase tracking-widest text-blue-600">Paciente llamado</p>
+      <p class="text-7xl font-extrabold tracking-widest text-blue-800">{{ num }}</p>
+      @if (lastCalledTicket()?.patientName; as pName) {
+        <p class="mt-3 text-xl font-bold text-blue-700">{{ pName }}</p>
+        <p class="text-sm text-blue-500">DNI: {{ lastCalledTicket()?.patientDni }}</p>
+      }
+    </div>
+  }
+  @if (errorMessage(); as err) {
+    <div class="flex items-center gap-3 rounded-xl bg-red-50 px-4 py-3 ring-1 ring-red-200" role="alert">
+      <span class="text-lg text-red-500">!</span>
+      <p class="text-sm text-red-700">{{ err }}</p>
+    </div>
+  }
+  @if (selectedSummary(); as summary) {
+    <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div class="flex flex-col items-center rounded-xl bg-white p-4 text-center ring-1 ring-gray-200">
+        <span class="text-2xl font-bold text-amber-600">{{ summary.waitingCount }}</span>
+        <span class="mt-1 text-xs font-medium text-gray-500">En espera</span>
+      </div>
+      <div class="flex flex-col items-center rounded-xl bg-white p-4 text-center ring-1 ring-gray-200">
+        <span class="text-2xl font-bold text-blue-600">{{ summary.inProgressCount }}</span>
+        <span class="mt-1 text-xs font-medium text-gray-500">En atencion</span>
+      </div>
+      <div class="flex flex-col items-center rounded-xl bg-white p-4 text-center ring-1 ring-gray-200">
+        <span class="text-2xl font-bold text-gray-700">{{ summary.avgWaitMinutes }} min</span>
+        <span class="mt-1 text-xs font-medium text-gray-500">Espera prom.</span>
+      </div>
+      <div class="flex flex-col items-center rounded-xl bg-white p-4 text-center ring-1 ring-gray-200">
+        <span class="text-2xl font-bold text-gray-700">{{ summary.lastTicketNumber }}</span>
+        <span class="mt-1 text-xs font-medium text-gray-500">Ultimo ticket</span>
+      </div>
+    </div>
+  }
+  <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
+    <h2 class="mb-4 text-base font-semibold text-gray-800">Pacientes en consulta ahora</h2>
+    @if (inProgressTickets().length === 0) {
+      <div class="flex flex-col items-center py-12 text-gray-400">
+        <span class="mb-3 text-4xl" aria-hidden="true"></span>
+        <p class="text-sm">No hay pacientes en consulta en este momento</p>
+      </div>
+    } @else {
+      <ul class="flex flex-col gap-4">
+        @for (ticket of inProgressTickets(); track ticket.id) {
+          <li class="rounded-xl border-2 border-blue-100 bg-blue-50 p-4">
+            <div class="mb-3 flex items-center gap-4">
+              <span class="text-4xl font-extrabold tracking-widest text-blue-800">{{ ticket.number }}</span>
+              <div class="text-sm text-gray-600">
+                <p class="font-semibold text-gray-900">{{ ticket.service.name }}</p>
+                <p>{{ ticket.service.windowLabel ?? 'Consultorio' }} {{ ticket.assignedWindow }}</p>
+              </div>
+            </div>
+            @if (ticket.patientName) {
+              <div class="mb-3 flex items-center gap-2 rounded-lg bg-white px-3 py-2 ring-1 ring-blue-200">
+                <span class="text-base">👤</span>
+                <div>
+                  <p class="font-bold text-sm text-gray-900">{{ ticket.patientName }}</p>
+                  <p class="text-xs text-gray-500">DNI: {{ ticket.patientDni }}</p>
+                </div>
+              </div>
+            }
+            <textarea
+              class="mb-3 w-full resize-none rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              placeholder="Observaciones clínicas..." rows="2"
+              #notesRef [value]="callNotes()" (input)="updateNotes(notesRef.value)"
+              [attr.aria-label]="'Notas para ticket ' + ticket.number"></textarea>
+            <div class="flex justify-end gap-2">
+              <button type="button"
+                class="rounded-lg bg-emerald-100 px-4 py-2 text-sm font-medium text-emerald-800 transition-colors hover:bg-emerald-200"
+                (click)="complete(ticket.id)">Consulta completada</button>
+              <button type="button"
+                class="rounded-lg bg-red-100 px-4 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-200"
+                (click)="cancel(ticket.id)">Cancelar</button>
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  </div>
+</div>

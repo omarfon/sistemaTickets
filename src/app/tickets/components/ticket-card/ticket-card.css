@@ -1,0 +1,190 @@
+/* ─── Ticket Card ────────────────────────────────────────────────────────── */
+.ticket-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  border: 2px solid #e5e7eb;
+  background: #fff;
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+
+.ticket-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* ─── Estados de color ───────────────────────────────────────────────────── */
+.ticket-card.status--waiting {
+  border-left: 4px solid #f59e0b;
+}
+
+.ticket-card.status--in-progress {
+  border-left: 4px solid #3b82f6;
+  background: #eff6ff;
+}
+
+.ticket-card.status--done {
+  border-left: 4px solid #10b981;
+  opacity: 0.85;
+}
+
+.ticket-card.status--cancelled {
+  border-left: 4px solid #ef4444;
+  opacity: 0.6;
+}
+
+/* ─── Header ─────────────────────────────────────────────────────────────── */
+.ticket-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.ticket-card__number {
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #1a1a2e;
+}
+
+.ticket-card__status-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.625rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.status--waiting .ticket-card__status-badge {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status--in-progress .ticket-card__status-badge {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.status--done .ticket-card__status-badge {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status--cancelled .ticket-card__status-badge {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* ─── Body ───────────────────────────────────────────────────────────────── */
+.ticket-card__body {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.ticket-card__details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin: 0;
+  flex: 1;
+}
+
+.ticket-card__detail-row {
+  display: flex;
+  gap: 0.375rem;
+  font-size: 0.875rem;
+}
+
+.ticket-card__dt {
+  color: #6b7280;
+  font-weight: 400;
+  min-width: 5.5rem;
+}
+
+.ticket-card__dd {
+  color: #111827;
+  font-weight: 500;
+  margin: 0;
+}
+
+.ticket-card__dd--priority {
+  font-weight: 600;
+  color: #7c3aed;
+}
+
+/* ─── Tiempo ─────────────────────────────────────────────────────────────── */
+.ticket-card__time {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.125rem;
+  flex-shrink: 0;
+}
+
+.ticket-card__time-label {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.ticket-card__time-value {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #374151;
+}
+
+/* ─── Notas ──────────────────────────────────────────────────────────────── */
+.ticket-card__notes {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: #6b7280;
+  padding: 0.5rem;
+  background: #f9fafb;
+  border-radius: 0.375rem;
+}
+
+.ticket-card__notes-label {
+  font-weight: 600;
+  color: #374151;
+}
+
+/* ─── Acciones ───────────────────────────────────────────────────────────── */
+.ticket-card__actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  padding-top: 0.25rem;
+  border-top: 1px solid #f3f4f6;
+}
+
+.ticket-card__btn {
+  padding: 0.375rem 0.875rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: background 0.15s;
+}
+
+.ticket-card__btn--complete {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.ticket-card__btn--complete:hover {
+  background: #a7f3d0;
+}
+
+.ticket-card__btn--cancel {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.ticket-card__btn--cancel:hover {
+  background: #fecaca;
+}

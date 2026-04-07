@@ -1,0 +1,168 @@
+<!-- RF-36 / RF-38 / RF-39 / RF-49 — Formulario de operador -->
+<div class="flex flex-col gap-6">
+
+  <!-- ── Cabecera ────────────────────────────────────────────────────────── -->
+  <div class="flex items-center gap-3">
+    <a routerLink="/operadores/supervision"
+       class="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-500 shadow-sm transition hover:bg-gray-50 hover:text-blue-600">
+      ← Volver
+    </a>
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">
+        {{ isEdit() ? '✏️ Editar operador' : '➕ Nuevo operador' }}
+      </h1>
+      <p class="mt-0.5 text-sm text-gray-500">
+        {{ isEdit() ? 'Modifica los datos del operador del sistema' : 'Registra un nuevo usuario de atención (RF-36)' }}
+      </p>
+    </div>
+  </div>
+
+  <div class="mx-auto w-full max-w-2xl">
+
+    <!-- Error general -->
+    @if (error()) {
+      <div class="mb-4 flex items-center gap-2 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700 ring-1 ring-red-200">
+        <span>⚠️</span> {{ error() }}
+      </div>
+    }
+
+    <form (ngSubmit)="save()" class="flex flex-col gap-6">
+
+      <!-- ── Datos básicos ────────────────────────────────────────────────── -->
+      <section class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
+        <h2 class="mb-4 text-sm font-semibold text-gray-700">Datos básicos</h2>
+
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+
+          <div class="sm:col-span-2">
+            <label class="mb-1 block text-xs font-medium text-gray-600" for="name">
+              Nombre completo *
+            </label>
+            <input id="name" name="name" type="text" required
+              [(ngModel)]="name"
+              placeholder="Ej: Ana Lucía Mendoza"
+              class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100" />
+          </div>
+
+          <div>
+            <label class="mb-1 block text-xs font-medium text-gray-600" for="email">
+              Correo electrónico *
+            </label>
+            <input id="email" name="email" type="email" required
+              [(ngModel)]="email"
+              placeholder="operador@mediturno.pe"
+              class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100" />
+          </div>
+
+          <div>
+            <label class="mb-1 block text-xs font-medium text-gray-600" for="password">
+              Contraseña *
+            </label>
+            <input id="password" name="password" type="password" required
+              [(ngModel)]="password"
+              placeholder="Mínimo 6 caracteres"
+              class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100" />
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ── RF-39: Rol de usuario ─────────────────────────────────────────── -->
+      <section class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
+        <h2 class="mb-1 text-sm font-semibold text-gray-700">Rol de usuario (RF-39)</h2>
+        <p class="mb-4 text-xs text-gray-400">Define el nivel de acceso en el sistema.</p>
+
+        <div class="grid grid-cols-3 gap-3">
+          @for (opt of roleOptions; track opt.value) {
+            <label class="flex cursor-pointer flex-col items-center gap-2 rounded-xl border p-4 text-center transition"
+              [class.border-blue-400]="role === opt.value"
+              [class.bg-blue-50]="role === opt.value"
+              [class.border-gray-200]="role !== opt.value">
+              <input type="radio" name="role" [value]="opt.value" [(ngModel)]="role" class="sr-only" />
+              <span class="text-2xl">{{ roleIcon[opt.value] }}</span>
+              <span class="text-xs font-semibold text-gray-800">{{ opt.label }}</span>
+            </label>
+          }
+        </div>
+      </section>
+
+      <!-- ── RF-38: Ventanilla asignada ────────────────────────────────────── -->
+      <section class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
+        <h2 class="mb-1 text-sm font-semibold text-gray-700">Ventanilla asignada (RF-38)</h2>
+        <p class="mb-4 text-xs text-gray-400">Vincula este operador a un módulo de atención.</p>
+
+        <select name="assignedWindowId" [(ngModel)]="assignedWindowId"
+          class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+          <option value="">— Sin asignar —</option>
+          @for (win of availableWindows(); track win.id) {
+            <option [value]="win.id">{{ win.name }}</option>
+          }
+        </select>
+      </section>
+
+      <!-- ── RF-49: Turnos laborales ────────────────────────────────────────── -->
+      <section class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
+        <h2 class="mb-4 text-sm font-semibold text-gray-700">Turnos laborales (RF-49)</h2>
+
+        @if (scheduleSlots().length === 0) {
+          <p class="mb-4 text-xs text-gray-400">Sin turnos configurados.</p>
+        } @else {
+          <ul class="mb-4 flex flex-col gap-2">
+            @for (slot of scheduleSlots(); track $index) {
+              <li class="flex items-center justify-between rounded-xl bg-gray-50 px-4 py-2 ring-1 ring-gray-200">
+                <span class="text-sm text-gray-800">
+                  <strong>{{ dayNames[slot.day] }}</strong>
+                  &nbsp;{{ slot.startTime }} — {{ slot.endTime }}
+                </span>
+                <button type="button" (click)="removeSlot($index)"
+                  class="text-xs text-red-400 transition hover:text-red-600">✕</button>
+              </li>
+            }
+          </ul>
+        }
+
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div>
+            <label class="mb-1 block text-[10px] text-gray-500">Día</label>
+            <select name="newSlotDay" [(ngModel)]="newSlotDay"
+              class="w-full rounded-xl border border-gray-300 px-2 py-1.5 text-xs focus:border-blue-500 focus:outline-none">
+              @for (d of dayNames; track $index) {
+                <option [value]="$index">{{ d }}</option>
+              }
+            </select>
+          </div>
+          <div>
+            <label class="mb-1 block text-[10px] text-gray-500">Desde</label>
+            <input type="time" name="newSlotStart" [(ngModel)]="newSlotStart"
+              class="w-full rounded-xl border border-gray-300 px-2 py-1.5 text-xs focus:border-blue-500 focus:outline-none" />
+          </div>
+          <div>
+            <label class="mb-1 block text-[10px] text-gray-500">Hasta</label>
+            <input type="time" name="newSlotEnd" [(ngModel)]="newSlotEnd"
+              class="w-full rounded-xl border border-gray-300 px-2 py-1.5 text-xs focus:border-blue-500 focus:outline-none" />
+          </div>
+          <div class="flex items-end">
+            <button type="button" (click)="addSlot()"
+              class="w-full rounded-xl bg-gray-100 px-3 py-2 text-xs font-medium text-gray-700 transition hover:bg-gray-200">
+              ＋ Agregar
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Botones ──────────────────────────────────────────────────────── -->
+      <div class="flex justify-end gap-3 border-t border-gray-100 pt-2">
+        <a routerLink="/operadores/supervision"
+          class="rounded-xl border border-gray-300 bg-white px-6 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
+          Cancelar
+        </a>
+        <button type="submit" [disabled]="saving()"
+          class="rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:opacity-50">
+          {{ saving() ? 'Guardando…' : (isEdit() ? 'Guardar cambios' : 'Crear operador') }}
+        </button>
+      </div>
+
+    </form>
+
+  </div>
+</div>

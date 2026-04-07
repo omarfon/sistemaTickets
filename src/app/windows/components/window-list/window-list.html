@@ -1,0 +1,207 @@
+<!-- RF-23 / RF-29 / RF-35 — Dashboard en tiempo real de ventanillas -->
+<div class="flex flex-col gap-6">
+
+  <!-- ── Cabecera con stats chips (patrón estándar) ───────────────────── -->
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Módulos / Ventanillas</h1>
+      <p class="mt-1 text-sm text-gray-500">Estado en tiempo real de todos los puestos de atención</p>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-3" role="status" aria-live="polite">
+      <div class="flex flex-col items-center rounded-xl bg-emerald-50 px-5 py-3 ring-1 ring-emerald-200">
+        <span class="text-2xl font-bold text-emerald-700">{{ totalAvailable() }}</span>
+        <span class="text-xs font-medium text-emerald-600">Disponibles</span>
+      </div>
+      <div class="flex flex-col items-center rounded-xl bg-blue-50 px-5 py-3 ring-1 ring-blue-200">
+        <span class="text-2xl font-bold text-blue-700">{{ totalOccupied() }}</span>
+        <span class="text-xs font-medium text-blue-600">Ocupados</span>
+      </div>
+      @if (alerts().length > 0) {
+        <div class="flex flex-col items-center rounded-xl bg-red-50 px-5 py-3 ring-1 ring-red-200">
+          <span class="text-2xl font-bold text-red-700">{{ alerts().length }}</span>
+          <span class="text-xs font-medium text-red-600">Alertas</span>
+        </div>
+      }
+      <button type="button"
+        class="flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+        (click)="rebalance()" title="RF-31: Redistribuir carga automáticamente">
+        ⚖️ Rebalancear
+      </button>
+      <a routerLink="/ventanillas/nueva"
+        class="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700">
+        ➕ Nueva ventanilla
+      </a>
+    </div>
+  </div>
+
+  <!-- ── RF-35: Alertas activas ──────────────────────────────────────── -->
+  @if (alerts().length > 0) {
+    <div class="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-200" role="alert">
+      <div class="mb-3 flex items-center justify-between">
+        <h2 class="text-sm font-semibold text-gray-800">
+          🔔 Alertas activas
+          <span class="ml-2 inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-bold text-red-700">
+            {{ alerts().length }}
+          </span>
+        </h2>
+        <button type="button" (click)="dismissAllAlerts()"
+          class="text-xs text-gray-400 hover:text-gray-700 transition-colors">
+          Descartar todas
+        </button>
+      </div>
+      <ul class="flex flex-col gap-2">
+        @for (alert of alerts(); track alert.id) {
+          <li class="flex items-start justify-between gap-3 rounded-xl px-4 py-3 ring-1"
+            [class.bg-amber-50]="alert.level === 'WARNING'"
+            [class.ring-amber-200]="alert.level === 'WARNING'"
+            [class.bg-red-50]="alert.level === 'CRITICAL'"
+            [class.ring-red-200]="alert.level === 'CRITICAL'">
+            <div class="flex items-center gap-2">
+              <span>{{ alert.level === 'CRITICAL' ? '🚨' : '⚠️' }}</span>
+              <div>
+                <p class="text-sm font-semibold text-gray-900">{{ alert.windowName }}</p>
+                <p class="text-xs text-gray-600">{{ alert.message }}</p>
+              </div>
+            </div>
+            <button type="button" (click)="dismissAlert(alert.id)"
+              class="flex-shrink-0 text-sm text-gray-400 hover:text-gray-700">✕</button>
+          </li>
+        }
+      </ul>
+    </div>
+  }
+
+  <!-- ── Filtros por estado (pills — patrón estándar) ──────────────────── -->
+  <nav class="flex flex-wrap gap-2" aria-label="Filtrar por estado">
+    @for (opt of filterOptions; track opt.value) {
+      <button type="button"
+        class="rounded-full border px-4 py-1.5 text-sm font-medium transition-colors"
+        [class.bg-blue-600]="activeFilter() === opt.value"
+        [class.text-white]="activeFilter() === opt.value"
+        [class.border-blue-600]="activeFilter() === opt.value"
+        [class.bg-white]="activeFilter() !== opt.value"
+        [class.text-gray-600]="activeFilter() !== opt.value"
+        [class.border-gray-300]="activeFilter() !== opt.value"
+        (click)="setFilter(opt.value)"
+        [attr.aria-pressed]="activeFilter() === opt.value">
+        {{ opt.label }}
+      </button>
+    }
+  </nav>
+
+  <!-- ── Grid de ventanillas (patrón estándar) ─────────────────────────── -->
+  @if (filteredSummaries().length === 0) {
+    <div class="flex flex-col items-center justify-center rounded-2xl bg-white py-20 ring-1 ring-gray-200" role="status">
+      <span class="mb-4 text-5xl" aria-hidden="true">🪟</span>
+      <p class="text-base font-medium text-gray-400">No hay módulos con este estado</p>
+    </div>
+  } @else {
+    <ul class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-label="Lista de módulos">
+      @for (s of filteredSummaries(); track s.window.id) {
+        <li>
+          <article
+            class="flex flex-col gap-3 rounded-2xl bg-white p-5 shadow-sm ring-1 transition-shadow hover:shadow-md"
+            [class.ring-gray-200]="s.alertLevel === WindowAlertLevel.None"
+            [class]="s.alertLevel !== WindowAlertLevel.None ? alertCss[s.alertLevel] : ''">
+
+            <!-- Cabecera: estado + nombre + operador -->
+            <header class="flex flex-wrap items-start justify-between gap-2">
+              <div class="flex items-center gap-2 min-w-0">
+                <span class="h-2.5 w-2.5 flex-shrink-0 rounded-full" [class]="statusDot[s.window.status]"></span>
+                <div class="min-w-0">
+                  <p class="truncate font-bold text-gray-900">{{ s.window.name }}</p>
+                  @if (s.window.operatorName) {
+                    <p class="text-xs text-gray-500">👤 {{ s.window.operatorName }}</p>
+                  }
+                </div>
+              </div>
+              <span class="inline-flex flex-shrink-0 items-center rounded-full px-2.5 py-1 text-xs font-bold ring-1"
+                [class]="statusCss[s.window.status]">
+                {{ statusLabels[s.window.status] }}
+              </span>
+            </header>
+
+            <!-- Paso clínico -->
+            <div class="flex items-center gap-1.5 text-xs text-gray-500">
+              @if (s.window.step === 1) { <span>🏥</span><span>Paso 1 — Admisión</span> }
+              @else if (s.window.step === 2) { <span>🩺</span><span>Paso 2 — Pre-consulta</span> }
+              @else { <span>👨‍⚕️</span><span>Paso 3 — Especialista</span> }
+            </div>
+
+            <!-- Métricas -->
+            <div class="grid grid-cols-3 gap-2 text-center">
+              <div class="rounded-xl bg-gray-50 p-2">
+                <p class="text-xl font-bold"
+                  [class.text-red-600]="s.alertLevel === WindowAlertLevel.Critical"
+                  [class.text-amber-600]="s.alertLevel === WindowAlertLevel.Warning"
+                  [class.text-gray-800]="s.alertLevel === WindowAlertLevel.None">
+                  {{ s.queuedTickets.length }}
+                </p>
+                <p class="text-[10px] text-gray-400">En cola</p>
+              </div>
+              <div class="rounded-xl bg-gray-50 p-2">
+                <p class="text-xl font-bold text-gray-800">{{ s.avgWaitMinutes }}<span class="text-xs font-normal"> min</span></p>
+                <p class="text-[10px] text-gray-400">Espera</p>
+              </div>
+              <div class="rounded-xl bg-gray-50 p-2">
+                <p class="text-xl font-bold text-gray-800">{{ s.window.attendedCount }}</p>
+                <p class="text-[10px] text-gray-400">Atendidos</p>
+              </div>
+            </div>
+
+            <!-- Barra de capacidad RF-30 -->
+            @if (s.window.maxQueueSize > 0) {
+              <div>
+                <div class="mb-1 flex justify-between text-[10px] text-gray-400">
+                  <span>Capacidad</span>
+                  <span>{{ s.queuedTickets.length }} / {{ s.window.maxQueueSize }}</span>
+                </div>
+                <div class="h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
+                  <div class="h-full rounded-full transition-all"
+                    [style.width.%]="(s.queuedTickets.length / s.window.maxQueueSize) * 100"
+                    [class.bg-emerald-500]="s.alertLevel === WindowAlertLevel.None"
+                    [class.bg-amber-500]="s.alertLevel === WindowAlertLevel.Warning"
+                    [class.bg-red-500]="s.alertLevel === WindowAlertLevel.Critical">
+                  </div>
+                </div>
+              </div>
+            }
+
+            <!-- Ticket en consulta ahora -->
+            @if (s.currentTicket) {
+              <div class="rounded-xl bg-blue-50 px-3 py-2 ring-1 ring-blue-200">
+                <p class="text-[10px] font-semibold uppercase tracking-widest text-blue-500">En consulta</p>
+                <p class="font-bold text-blue-900">{{ s.currentTicket.number }}</p>
+                @if (s.currentTicket.patientName) {
+                  <p class="text-xs text-blue-700">{{ s.currentTicket.patientName }}</p>
+                }
+              </div>
+            }
+
+            <!-- Footer: horario + acciones -->
+            <footer class="flex items-center justify-between border-t border-gray-100 pt-3">
+              <span class="text-xs"
+                [class.text-emerald-600]="s.withinSchedule"
+                [class.text-gray-400]="!s.withinSchedule">
+                🕐 {{ scheduleLabel(s.withinSchedule, s.window.schedule.length > 0) }}
+              </span>
+              <div class="flex gap-1.5">
+                <a [routerLink]="['/ventanillas', s.window.id, 'operador']"
+                  class="rounded-lg bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800 transition-colors hover:bg-blue-200">
+                  🖥️ Panel
+                </a>
+                <a [routerLink]="['/ventanillas', s.window.id, 'editar']"
+                  class="rounded-lg bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200">
+                  ✏️
+                </a>
+              </div>
+            </footer>
+
+          </article>
+        </li>
+      }
+    </ul>
+  }
+
+</div>

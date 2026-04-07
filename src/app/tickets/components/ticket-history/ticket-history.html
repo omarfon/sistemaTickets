@@ -1,0 +1,20 @@
+<!-- RF-11: Línea de tiempo del ciclo de vida del ticket -->
+<ol class="relative border-l-2 border-gray-200 pl-5 space-y-4" aria-label="Historial del ticket">
+  @for (entry of history(); track entry.id) {
+    <li class="relative flex gap-3">
+      <span
+        class="absolute -left-[1.35rem] flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-xs ring-2 ring-white"
+        [class]="eventColors[entry.event]"
+      >
+        {{ eventIcons[entry.event] }}
+      </span>
+      <div class="flex-1 min-w-0 pl-1">
+        <p class="text-sm font-medium text-gray-900">{{ eventLabels[entry.event] }}</p>
+        @if (entry.detail) {
+          <p class="mt-0.5 text-xs text-gray-500 break-words">{{ entry.detail }}</p>
+        }
+        <p class="mt-0.5 text-[11px] text-gray-400">{{ formatDateTime(entry.timestamp) }}</p>
+      </div>
+    </li>
+  }
+</ol>

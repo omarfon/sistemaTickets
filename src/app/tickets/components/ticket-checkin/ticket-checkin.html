@@ -1,0 +1,111 @@
+<!-- RF-20: Check-in de llegada del paciente con turno virtual -->
+<div class="mx-auto max-w-md">
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-gray-900">Confirmar Llegada</h1>
+    <p class="mt-1 text-sm text-gray-500">
+      Confirma tu llegada a la clínica con tu número de turno para activarlo en la cola
+    </p>
+  </div>
+
+  @if (checkedInTicket(); as ticket) {
+    <!-- Confirmación exitosa -->
+    <div class="flex flex-col items-center gap-5 rounded-2xl bg-teal-50 py-12 px-6 text-center ring-2 ring-teal-200" role="status" aria-live="polite">
+      <span class="text-5xl">📍</span>
+      <div>
+        <p class="text-sm font-semibold uppercase tracking-widest text-teal-600">Check-in confirmado</p>
+        <p class="mt-1 text-6xl font-extrabold tracking-widest text-teal-800">{{ ticket.number }}</p>
+        <p class="mt-2 text-lg font-medium text-teal-700">{{ ticket.service.name }}</p>
+        <p class="mt-1 text-sm text-teal-600">
+          Espera estimada: <strong>{{ ticket.estimatedWaitMinutes }} min</strong>
+        </p>
+      </div>
+      <div class="w-full rounded-xl bg-white px-4 py-3 ring-1 ring-teal-200">
+        <p class="text-sm text-teal-700">✅ Llegada confirmada. Espera ser llamado por el operador.</p>
+      </div>
+      <button
+        type="button"
+        class="mt-2 rounded-xl bg-teal-600 px-8 py-3 text-sm font-semibold text-white hover:bg-teal-700 transition-colors"
+        (click)="reset()"
+      >
+        Nuevo check-in
+      </button>
+    </div>
+
+  } @else {
+    <!-- Formulario de búsqueda -->
+    <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
+      <form [formGroup]="form" (ngSubmit)="search()" novalidate class="flex flex-col gap-4">
+        <div class="flex flex-col gap-1.5">
+          <label for="ticketNum" class="text-sm font-medium text-gray-700">
+            Número de turno
+          </label>
+          <div class="flex gap-2">
+            <input
+              id="ticketNum"
+              type="text"
+              formControlName="ticketNumber"
+              placeholder="Ej: A001, B023…"
+              class="flex-1 rounded-lg border border-gray-300 px-3 py-2.5 text-sm uppercase placeholder-gray-400 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+              (keyup.enter)="search()"
+            />
+            <button
+              type="submit"
+              class="rounded-lg bg-teal-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-teal-700 disabled:opacity-50 transition-colors"
+              [disabled]="form.invalid"
+            >
+              Buscar
+            </button>
+          </div>
+        </div>
+      </form>
+
+      @if (errorMsg(); as err) {
+        <div class="mt-4 flex items-center gap-3 rounded-xl bg-red-50 px-4 py-3 ring-1 ring-red-200" role="alert">
+          <span>⚠️</span>
+          <p class="text-sm text-red-700">{{ err }}</p>
+        </div>
+      }
+
+      @if (foundTicket(); as ticket) {
+        <div class="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <p class="text-xs text-gray-500">Paciente encontrado</p>
+              <p class="text-3xl font-extrabold tracking-widest text-gray-900">{{ ticket.number }}</p>
+              <p class="text-sm font-medium text-gray-700">{{ ticket.service.name }}</p>
+              <p class="mt-1 text-xs text-gray-500">
+                Espera est.: <strong>{{ ticket.estimatedWaitMinutes }} min</strong>
+              </p>
+            </div>
+            @if (ticket.checkedIn) {
+              <span class="inline-flex items-center gap-1 rounded-full bg-teal-100 px-3 py-1 text-sm font-semibold text-teal-800">
+                ✅ Ya registrado
+              </span>
+            } @else {
+              <span class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-800">
+                🌐 Virtual
+              </span>
+            }
+          </div>
+          @if (!ticket.checkedIn) {
+            <button
+              type="button"
+              class="mt-4 w-full rounded-xl bg-teal-600 py-3 text-sm font-semibold text-white hover:bg-teal-700 transition-colors"
+              (click)="confirmCheckIn()"
+            >
+              📍 Confirmar llegada y entrar a la cola
+            </button>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Instrucciones -->
+    <div class="mt-4 flex gap-3 rounded-xl bg-blue-50 px-4 py-3 ring-1 ring-blue-200">
+      <span>💡</span>
+      <p class="text-sm text-blue-800">
+        Si reservaste tu turno desde la web o app, usa este módulo para confirmar tu llegada y activar tu turno en la cola.
+      </p>
+    </div>
+  }
+</div>

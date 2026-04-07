@@ -1,0 +1,202 @@
+<!-- RF-51/52/53/54/57/58/60 — Panel de Display TV / Kiosko -->
+
+@if (config(); as cfg) {
+
+  <!-- ─── Contenedor principal ─────────────────────────────────────────── -->
+  <div
+    class="flex h-screen w-screen select-none flex-col overflow-hidden"
+    [class]="ThemeBg[cfg.theme]"
+    role="main"
+    aria-label="Panel de llamado de turno"
+  >
+
+    <!-- ── RF-55: Cabecera con branding ─────────────────────────────────── -->
+    <header
+      [class]="'flex flex-shrink-0 items-center justify-between px-8 py-4 shadow-lg ' + ThemeHeader[cfg.theme]"
+    >
+      <div class="flex items-center gap-4">
+        <span class="text-5xl leading-none" aria-hidden="true">{{ cfg.clinicLogo }}</span>
+        <div>
+          <h1 class="text-2xl font-extrabold tracking-wide">{{ cfg.clinicName }}</h1>
+          <p class="mt-0.5 text-sm font-medium opacity-70">
+            {{ cfg.branch.name }}&nbsp;&nbsp;·&nbsp;&nbsp;{{ cfg.name }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Reloj + fecha -->
+      <div class="text-right" aria-live="off">
+        <p class="font-mono text-5xl font-extrabold tracking-widest">
+          {{ now() | date:'HH:mm:ss' }}
+        </p>
+        <p class="mt-0.5 text-sm font-medium capitalize opacity-70">
+          {{ now() | date:"EEEE, d 'de' MMMM yyyy" : '' : 'es' }}
+        </p>
+      </div>
+    </header>
+
+    <!-- ── Área de contenido principal ──────────────────────────────────── -->
+    <div class="flex flex-1 flex-col gap-5 overflow-hidden p-6">
+
+      <!-- ── RF-51: Tarjetas de llamado activo ──────────────────────────── -->
+      <section aria-labelledby="active-heading">
+        <h2
+          id="active-heading"
+          class="mb-3 text-center text-xs font-semibold uppercase tracking-[0.2em] opacity-50"
+        >
+          ── En Atención Ahora ──
+        </h2>
+
+        @if (activeSummaries().length === 0) {
+          <div
+            class="flex flex-col items-center justify-center rounded-3xl py-12 opacity-30"
+            role="status"
+          >
+            <span class="mb-3 text-7xl" aria-hidden="true">⏳</span>
+            <p class="text-xl font-semibold">Sin llamados activos</p>
+          </div>
+        } @else {
+          <ul
+            class="grid gap-4"
+            [class.grid-cols-1]="activeSummaries().length === 1"
+            [class.grid-cols-2]="activeSummaries().length === 2"
+            [class.grid-cols-3]="activeSummaries().length === 3"
+            [class.grid-cols-4]="activeSummaries().length >= 4"
+            role="list"
+            aria-label="Módulos en atención"
+          >
+            @for (summary of activeSummaries(); track summary.window.id) {
+              @if (summary.currentTicket; as ticket) {
+                <li role="listitem">
+                  <article
+                    class="flex flex-col items-center rounded-3xl px-6 py-5 shadow-xl transition-all"
+                    [class]="ThemeCard[cfg.theme] + ' ' + priorityCardClass(ticket.priority)"
+                    [attr.aria-label]="'Módulo ' + summary.window.number + ': turno ' + ticket.number"
+                  >
+                    <!-- Nombre de ventanilla -->
+                    <div class="mb-2 w-full text-center">
+                      <p class="text-xs font-bold uppercase tracking-[0.15em] opacity-55">
+                        Módulo {{ summary.window.number }}
+                      </p>
+                      <p class="mt-0.5 text-base font-semibold">{{ summary.window.name }}</p>
+                    </div>
+
+                    <!-- RF-60: Número de ticket (tamaño hero) -->
+                    <p
+                      class="my-4 font-mono text-8xl font-black leading-none tracking-wider"
+                      [class]="priorityTicketClass(ticket.priority)"
+                    >
+                      {{ ticket.number }}
+                    </p>
+
+                    <!-- RF-60: Badge de prioridad -->
+                    <span
+                      class="rounded-full px-5 py-1.5 text-xs font-black uppercase tracking-widest"
+                      [class]="priorityBadgeClass(ticket.priority)"
+                    >
+                      {{ priorityLabel(ticket.priority) }}
+                    </span>
+
+                    <!-- Servicio + Paciente -->
+                    <p class="mt-3 text-center text-sm font-medium opacity-65">
+                      {{ ticket.service.name }}
+                    </p>
+                    @if (ticket.patientName) {
+                      <p class="mt-1 text-center text-xs opacity-40">{{ ticket.patientName }}</p>
+                    }
+                  </article>
+                </li>
+              }
+            }
+          </ul>
+        }
+      </section>
+
+      <!-- Divisor -->
+      <hr class="border-current opacity-15" />
+
+      <!-- ── RF-53: Historial de últimos llamados ─────────────────────── -->
+      @if (cfg.showHistory && callHistory().length > 0) {
+        <section aria-labelledby="history-heading" class="min-h-0 flex-1 overflow-hidden">
+          <h2
+            id="history-heading"
+            class="mb-3 text-center text-xs font-semibold uppercase tracking-[0.2em] opacity-50"
+          >
+            ── Últimos Llamados ──
+          </h2>
+
+          <ul
+            class="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6"
+            role="list"
+            aria-label="Historial de llamados recientes"
+          >
+            @for (record of callHistory(); track record.id) {
+              <li role="listitem">
+                <div
+                  class="flex items-center gap-2.5 rounded-2xl px-4 py-2.5 shadow-sm"
+                  [class]="ThemeCard[cfg.theme]"
+                  [attr.aria-label]="record.ticketNumber + ' — ' + record.windowName"
+                >
+                  <!-- Dot de prioridad -->
+                  <span
+                    class="h-2.5 w-2.5 flex-shrink-0 rounded-full"
+                    [class]="historyDotClass(record.priority)"
+                  ></span>
+
+                  <!-- Número de ticket -->
+                  <span class="font-mono text-lg font-bold">{{ record.ticketNumber }}</span>
+
+                  <!-- Ventanilla + hora -->
+                  <div class="min-w-0 flex-1 text-right">
+                    <p class="truncate text-xs font-medium opacity-60">{{ record.windowName }}</p>
+                    <p class="text-xs opacity-40">{{ record.calledAt | date:'HH:mm' }}</p>
+                  </div>
+                </div>
+              </li>
+            }
+          </ul>
+        </section>
+      }
+
+    </div>
+
+    <!-- ── RF-56: Ticker de anuncios (barra inferior) ───────────────────── -->
+    @if (activeAnnouncements().length > 0 && currentAnnouncement(); as ann) {
+      <footer
+        [class]="'flex flex-shrink-0 items-center gap-4 px-8 py-3 ' + ThemeTicker[cfg.theme]"
+        aria-live="polite"
+        role="contentinfo"
+      >
+        <span class="flex-shrink-0 rounded-full bg-white/20 px-3 py-1 text-xs font-bold uppercase tracking-wider">
+          📢 Aviso
+        </span>
+        <p class="flex-1 truncate text-sm font-medium">{{ ann.message }}</p>
+        @if (activeAnnouncements().length > 1) {
+          <span class="flex-shrink-0 text-xs font-semibold opacity-60">
+            {{ (tickerIndex() % activeAnnouncements().length) + 1 }}/{{ activeAnnouncements().length }}
+          </span>
+        }
+      </footer>
+    }
+
+  </div>
+
+} @else {
+
+  <!-- Pantalla sin configuración -->
+  <div
+    class="flex h-screen w-screen flex-col items-center justify-center bg-gray-950 text-white"
+    role="main"
+  >
+    <span class="mb-4 text-8xl" aria-hidden="true">📺</span>
+    <h1 class="text-4xl font-bold">Pantalla {{ screenId() }}</h1>
+    <p class="mt-3 text-gray-400">No se encontró configuración para esta pantalla</p>
+    <a
+      href="/display/configuracion"
+      class="mt-8 rounded-2xl bg-blue-600 px-8 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-blue-700"
+    >
+      Ir a Configuración
+    </a>
+  </div>
+
+}

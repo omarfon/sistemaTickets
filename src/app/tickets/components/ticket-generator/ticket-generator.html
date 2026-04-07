@@ -1,0 +1,121 @@
+﻿<div class="mx-auto max-w-xl">
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-gray-900">Registrar Paciente</h1>
+    <p class="mt-1 text-sm text-gray-500">Selecciona el servicio y la prioridad para emitir el turno</p>
+  </div>
+  @if (lastCreatedTicket(); as ticket) {
+    <!-- RF-15: Banner de éxito con QR y botón de impresión -->
+    <div class="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-5" role="alert" aria-live="polite">
+      <div class="flex items-start gap-4">
+        <div class="flex-1">
+          <p class="text-xs font-semibold uppercase tracking-wider text-emerald-700">Paciente registrado</p>
+          <p class="text-4xl font-extrabold tracking-widest text-emerald-800">{{ ticket.number }}</p>
+          <p class="mt-1 text-sm text-emerald-600">
+            {{ ticket.service.name }} · Espera estimada: <strong>{{ ticket.estimatedWaitMinutes }} min</strong>
+          </p>
+          <div class="mt-3 flex gap-2">
+            <!-- RF-14: Imprimir -->
+            <button
+              type="button"
+              class="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 transition-colors"
+              (click)="printTicket()"
+            >
+              🖨️ Imprimir
+            </button>
+            <button
+              type="button"
+              class="rounded-lg px-3 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-100 transition-colors"
+              (click)="resetForm()"
+            >
+              Registrar otro
+            </button>
+          </div>
+        </div>
+        <!-- RF-15: Código QR -->
+        @if (qrUrl(); as qr) {
+          <div class="flex flex-shrink-0 flex-col items-center gap-1">
+            <img [src]="qr" alt="QR del ticket" class="h-24 w-24 rounded-lg border border-emerald-200" />
+            <p class="text-[10px] text-emerald-600">QR de seguimiento</p>
+          </div>
+        }
+      </div>
+    </div>
+  }
+  <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="flex flex-col gap-6">
+      <div class="flex flex-col gap-1.5">
+        <label for="serviceId" class="text-sm font-medium text-gray-700">Servicio <span class="text-red-500" aria-hidden="true">*</span></label>
+        <select id="serviceId" formControlName="serviceId"
+          (change)="checkDuplicate()"
+          class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+          [class.border-red-400]="form.controls.serviceId.invalid && form.controls.serviceId.touched"
+          [attr.aria-invalid]="form.controls.serviceId.invalid && form.controls.serviceId.touched">
+          <option value="" disabled>Selecciona un servicio</option>
+          @for (group of servicesByStep(); track group.step) {
+            <optgroup [label]="group.label">
+              @for (svc of group.services; track svc.id) {
+                <option [value]="svc.id">[{{ svc.prefix }}] {{ svc.name }} – {{ svc.description }}</option>
+              }
+            </optgroup>
+          }
+        </select>
+        <!-- RF-16: Aviso de duplicidad -->
+        @if (duplicateWarning()) {
+          <div class="flex items-start gap-2 rounded-lg bg-amber-50 px-3 py-2 ring-1 ring-amber-200" role="alert">
+            <span class="flex-shrink-0">⚠️</span>
+            <p class="text-xs text-amber-800">
+              Ya existe un turno activo para este paciente en el mismo servicio. Puedes continuar si es necesario.
+            </p>
+          </div>
+        }
+        @if (form.controls.serviceId.invalid && form.controls.serviceId.touched) {
+          <span class="text-xs text-red-500" role="alert">Debes seleccionar un servicio</span>
+        }
+      </div>
+      <div class="flex flex-col gap-2">
+        <span class="text-sm font-medium text-gray-700" id="source-label">Canal de origen</span>
+        <div class="flex flex-wrap gap-2" role="radiogroup" aria-labelledby="source-label">
+          @for (src of sources; track src) {
+            <label class="flex cursor-pointer items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors"
+              [class.border-blue-500]="form.controls.source.value === src"
+              [class.bg-blue-50]="form.controls.source.value === src"
+              [class.text-blue-700]="form.controls.source.value === src"
+              [class.border-gray-300]="form.controls.source.value !== src"
+              [class.text-gray-600]="form.controls.source.value !== src">
+              <input type="radio" [value]="src" formControlName="source" class="sr-only" />
+              {{ sourceLabels[src] }}
+            </label>
+          }
+        </div>
+      </div>
+      <div class="flex flex-col gap-2">
+        <span class="text-sm font-medium text-gray-700" id="priority-label">Prioridad clínica</span>
+        <div class="grid grid-cols-3 gap-2" role="radiogroup" aria-labelledby="priority-label">
+          @for (p of priorities; track p) {
+            <label class="flex cursor-pointer flex-col items-center gap-1 rounded-xl border-2 py-3 text-sm font-medium transition-colors"
+              [class.border-purple-500]="form.controls.priority.value === p"
+              [class.bg-purple-50]="form.controls.priority.value === p"
+              [class.text-purple-700]="form.controls.priority.value === p"
+              [class.border-gray-200]="form.controls.priority.value !== p"
+              [class.text-gray-500]="form.controls.priority.value !== p">
+              <input type="radio" [value]="p" formControlName="priority" class="sr-only" />
+              {{ priorityLabels[p] }}
+            </label>
+          }
+        </div>
+      </div>
+      <div class="flex flex-col gap-1.5">
+        <label for="notes" class="text-sm font-medium text-gray-700">Notas <span class="font-normal text-gray-400">(opcional)</span></label>
+        <textarea id="notes" formControlName="notes" rows="2" maxlength="200" placeholder="Motivo de consulta, observaciones..."
+          class="w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"></textarea>
+      </div>
+      <div class="flex justify-end gap-3 pt-2">
+        <button type="button" class="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors" (click)="resetForm()">Limpiar</button>
+        <button type="submit" class="rounded-lg bg-blue-600 px-6 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
+          [disabled]="form.invalid || isSubmitting()" [attr.aria-busy]="isSubmitting()">
+          @if (isSubmitting()) { Registrando... } @else { Emitir Turno }
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
