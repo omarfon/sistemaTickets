@@ -227,6 +227,59 @@
 
       <hr class="my-3 border-slate-700/60" />
 
+      <!-- Sección: Módulo 5 — Motor de Colas -->
+      @if (!sidebarCollapsed()) {
+        <p class="px-3 pb-2 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+          Módulo 5 — Motor de Colas
+        </p>
+      }
+
+      <a
+        routerLink="/motor/dashboard"
+        routerLinkActive="!bg-indigo-600 !text-white"
+        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+        ariaCurrentWhenActive="page"
+        title="Dashboard del motor (RF-61 a RF-63, RF-70)"
+      >
+        <span class="flex-shrink-0 text-base">⚙️</span>
+        @if (!sidebarCollapsed()) { <span>Dashboard motor</span> }
+      </a>
+
+      <a
+        routerLink="/motor/reglas"
+        routerLinkActive="!bg-indigo-600 !text-white"
+        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+        ariaCurrentWhenActive="page"
+        title="Reglas y SLA (RF-63, RF-64, RF-71, RF-73, RF-74)"
+      >
+        <span class="flex-shrink-0 text-base">📋</span>
+        @if (!sidebarCollapsed()) { <span>Reglas y SLA</span> }
+      </a>
+
+      <a
+        routerLink="/motor/simulacion"
+        routerLinkActive="!bg-indigo-600 !text-white"
+        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+        ariaCurrentWhenActive="page"
+        title="Simulación y predicción (RF-68, RF-69)"
+      >
+        <span class="flex-shrink-0 text-base">📊</span>
+        @if (!sidebarCollapsed()) { <span>Simulación / Predicción</span> }
+      </a>
+
+      <a
+        routerLink="/motor/cola-virtual"
+        routerLinkActive="!bg-indigo-600 !text-white"
+        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+        ariaCurrentWhenActive="page"
+        title="Cola virtual (RF-72)"
+      >
+        <span class="flex-shrink-0 text-base">🌐</span>
+        @if (!sidebarCollapsed()) { <span>Cola virtual</span> }
+      </a>
+
+      <hr class="my-3 border-slate-700/60" />
+
       <!-- Sección: Próximamente -->
       @if (!sidebarCollapsed()) {
         <p class="px-3 pb-2 text-[10px] font-semibold uppercase tracking-widest text-slate-600">

@@ -22,6 +22,11 @@ export const routes: Routes = [
       import('./display/display.routes').then(m => m.DISPLAY_ROUTES),
   },
   {
+    path: 'motor',
+    loadChildren: () =>
+      import('./engine/engine.routes').then(m => m.ENGINE_ROUTES),
+  },
+  {
     path: '',
     redirectTo: 'tickets',
     pathMatch: 'full',

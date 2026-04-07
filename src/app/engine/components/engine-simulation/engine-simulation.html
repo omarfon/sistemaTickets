@@ -1,0 +1,269 @@
+<div class="space-y-6">
+
+  <!-- ── Encabezado ──────────────────────────────────────────────────────── -->
+  <div>
+    <h1 class="text-2xl font-bold text-gray-900">🧪 Simulación y Predicción</h1>
+    <p class="mt-0.5 text-sm text-gray-500">RF-68 Predicción de demanda · RF-69 Simulación de colas</p>
+  </div>
+
+  <!-- ── Tabs ─────────────────────────────────────────────────────────────── -->
+  <div class="rounded-2xl bg-white shadow-sm ring-1 ring-gray-200">
+    <div class="flex gap-6 border-b border-gray-100 px-6 pt-1">
+      <button type="button" (click)="tab.set('simulation')"
+        class="py-3 text-sm transition-colors" [class]="tabClass('simulation')">
+        🧪 Simulador de colas
+      </button>
+      <button type="button" (click)="tab.set('prediction')"
+        class="py-3 text-sm transition-colors" [class]="tabClass('prediction')">
+        📈 Predicción de demanda
+      </button>
+    </div>
+
+    <div class="p-6">
+
+      <!-- ── Tab: Simulador (RF-69) ─────────────────────────────────────── -->
+      @if (tab() === 'simulation') {
+        <div class="grid gap-8 lg:grid-cols-2">
+
+          <!-- Formulario -->
+          <div class="space-y-4">
+            <h3 class="font-bold text-gray-800">⚙️ Parámetros</h3>
+
+            <div>
+              <label class="mb-1 block text-xs font-semibold text-gray-600">Nombre del escenario</label>
+              <input type="text" [ngModel]="simName()" (ngModelChange)="simName.set($event)"
+                placeholder="Ej: Escenario hora pico"
+                class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-200" />
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="mb-1 block text-xs font-semibold text-gray-600">Llegadas / hora</label>
+                <input type="number" min="1" max="200"
+                  [ngModel]="simArrivalRate()" (ngModelChange)="simArrivalRate.set(+$event)"
+                  class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:outline-none" />
+              </div>
+              <div>
+                <label class="mb-1 block text-xs font-semibold text-gray-600">Tiempo atención (min)</label>
+                <input type="number" min="1" max="60"
+                  [ngModel]="simServiceTime()" (ngModelChange)="simServiceTime.set(+$event)"
+                  class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:outline-none" />
+              </div>
+              <div>
+                <label class="mb-1 block text-xs font-semibold text-gray-600">Nº ventanillas</label>
+                <input type="number" min="1" max="20"
+                  [ngModel]="simServers()" (ngModelChange)="simServers.set(+$event)"
+                  class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:outline-none" />
+              </div>
+              <div>
+                <label class="mb-1 block text-xs font-semibold text-gray-600">Duración (horas)</label>
+                <input type="number" min="1" max="24"
+                  [ngModel]="simDuration()" (ngModelChange)="simDuration.set(+$event)"
+                  class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:outline-none" />
+              </div>
+            </div>
+
+            <!-- Distribución de prioridades -->
+            <div>
+              <label class="mb-2 block text-xs font-semibold text-gray-600">
+                Distribución de prioridades
+                <span class="ml-2 font-bold"
+                      [class.text-green-600]="totalPct() === 100"
+                      [class.text-red-600]="totalPct() !== 100">
+                  ({{ totalPct() }}%)
+                </span>
+              </label>
+              <div class="grid grid-cols-3 gap-2">
+                <div>
+                  <p class="mb-1 text-xs text-gray-500">General %</p>
+                  <input type="number" min="0" max="100"
+                    [ngModel]="simNormal()" (ngModelChange)="simNormal.set(+$event)"
+                    class="w-full rounded-xl border border-gray-300 px-2 py-1.5 text-sm text-center" />
+                </div>
+                <div>
+                  <p class="mb-1 text-xs text-blue-600">Vulnerable %</p>
+                  <input type="number" min="0" max="100"
+                    [ngModel]="simPreferential()" (ngModelChange)="simPreferential.set(+$event)"
+                    class="w-full rounded-xl border border-blue-300 px-2 py-1.5 text-sm text-center" />
+                </div>
+                <div>
+                  <p class="mb-1 text-xs text-red-600">Urgente %</p>
+                  <input type="number" min="0" max="100"
+                    [ngModel]="simVip()" (ngModelChange)="simVip.set(+$event)"
+                    class="w-full rounded-xl border border-red-300 px-2 py-1.5 text-sm text-center" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Regla de cola -->
+            <div>
+              <label class="mb-1 block text-xs font-semibold text-gray-600">Regla de atención</label>
+              <div class="flex flex-wrap gap-2">
+                @for (rt of ruleTypes(); track rt) {
+                  <button type="button" (click)="simRule.set(rt)"
+                    class="rounded-xl px-3 py-1.5 text-xs font-medium ring-1 transition-colors"
+                    [class.bg-indigo-600]="simRule() === rt"
+                    [class.text-white]="simRule() === rt"
+                    [class.ring-indigo-600]="simRule() === rt"
+                    [class.bg-gray-50]="simRule() !== rt"
+                    [class.text-gray-700]="simRule() !== rt"
+                    [class.ring-gray-200]="simRule() !== rt">
+                    {{ ruleIcons[rt] }} {{ ruleLabels[rt] }}
+                  </button>
+                }
+              </div>
+            </div>
+
+            @if (simError()) {
+              <p class="rounded-xl bg-red-50 px-3 py-2 text-xs text-red-700">{{ simError() }}</p>
+            }
+
+            <button type="button" (click)="runSim()"
+              [disabled]="simRunning()"
+              class="w-full rounded-xl bg-indigo-600 py-2.5 text-sm font-bold text-white hover:bg-indigo-700 disabled:opacity-60 transition-colors">
+              {{ simRunning() ? '⏳ Simulando…' : '▶ Ejecutar simulación' }}
+            </button>
+          </div>
+
+          <!-- Resultados -->
+          <div>
+            <h3 class="mb-3 font-bold text-gray-800">📊 Resultados históricos</h3>
+            @if (simulations().length === 0) {
+              <div class="rounded-2xl bg-gray-50 py-12 text-center text-sm text-gray-400">
+                Ejecuta tu primera simulación →
+              </div>
+            } @else {
+              <div class="space-y-3">
+                @for (sim of simulations(); track sim.id) {
+                  <div class="rounded-2xl bg-gray-50 p-4 ring-1 ring-gray-200">
+                    <div class="flex items-start justify-between gap-2">
+                      <div>
+                        <p class="font-semibold text-gray-900">{{ sim.name }}</p>
+                        <p class="text-xs text-gray-500">
+                          {{ sim.params.serverCount }} ventanilla(s) · {{ sim.params.arrivalRatePerHour }}/h · {{ sim.params.avgServiceTimeMinutes }} min/ticket
+                        </p>
+                      </div>
+                      <button type="button" (click)="deleteSim(sim.id)"
+                        class="text-gray-300 hover:text-red-500">🗑️</button>
+                    </div>
+
+                    <!-- KPIs -->
+                    <div class="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                      <div class="rounded-xl bg-white p-2 text-center ring-1 ring-gray-100">
+                        <p class="text-xs text-gray-400">Espera prom.</p>
+                        <p class="font-bold text-gray-900">{{ sim.avgWaitMinutes }} min</p>
+                      </div>
+                      <div class="rounded-xl bg-white p-2 text-center ring-1 ring-gray-100">
+                        <p class="text-xs text-gray-400">Espera máx.</p>
+                        <p class="font-bold text-gray-900">{{ sim.maxWaitMinutes }} min</p>
+                      </div>
+                      <div class="rounded-xl p-2 text-center ring-1" [class]="utilBadge(sim.serverUtilization)">
+                        <p class="text-xs">Utilización</p>
+                        <p class="font-bold">{{ (sim.serverUtilization * 100) | number:'1.0-0' }}%</p>
+                      </div>
+                      <div class="rounded-xl p-2 text-center ring-1" [class]="slaBadge(sim.slaCompliancePct)">
+                        <p class="text-xs">SLA</p>
+                        <p class="font-bold">{{ sim.slaCompliancePct }}%</p>
+                      </div>
+                    </div>
+
+                    <p class="mt-2 text-xs text-gray-500">
+                      {{ sim.ticketsProcessed }} procesados · {{ sim.abandonments }} abandonos
+                    </p>
+
+                    <!-- Curva de cola (mini bar chart) -->
+                    <div class="mt-3 flex items-end gap-0.5 h-12">
+                      @for (pt of sim.queueCurve; track pt.hour) {
+                        <div class="flex-1 rounded-t bg-indigo-200 hover:bg-indigo-400 transition-colors"
+                             [style.height.%]="barH(pt.queueLength, 20)"
+                             [title]="'Hora ' + pt.hour + ': ' + pt.queueLength + ' en cola'">
+                        </div>
+                      }
+                    </div>
+                    <p class="mt-0.5 text-[10px] text-gray-400 text-center">Longitud de cola por hora</p>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+        </div>
+      }
+
+      <!-- ── Tab: Predicción de demanda (RF-68) ─────────────────────────── -->
+      @if (tab() === 'prediction') {
+        <div class="space-y-6">
+
+          <div class="flex items-center gap-4">
+            <div class="flex-1">
+              <label class="mb-1 block text-xs font-semibold text-gray-600">Servicio a analizar</label>
+              <select [ngModel]="selectedService()" (ngModelChange)="selectedService.set($event)"
+                class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none">
+                <option value="svc-admision-caja">💳 Caja / Pagos</option>
+                <option value="svc-admision-citas">📅 Citas y Reservas</option>
+                <option value="svc-triaje">🩺 Pre-consulta (Triaje)</option>
+                <option value="svc-medicina">👨‍⚕️ Medicina General</option>
+                <option value="svc-pediatria">🧒 Pediatría</option>
+              </select>
+            </div>
+            <div class="pt-5">
+              <button type="button" (click)="generatePrediction()"
+                [disabled]="generatingPred()"
+                class="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60">
+                {{ generatingPred() ? '⏳ Generando…' : '🔮 Generar predicción' }}
+              </button>
+            </div>
+          </div>
+
+          @if (predictions().length === 0) {
+            <div class="rounded-2xl bg-gray-50 py-12 text-center text-sm text-gray-400">
+              No hay predicciones generadas. Selecciona un servicio y haz clic en "Generar predicción".
+            </div>
+          } @else {
+            @for (pred of predictions(); track pred.id) {
+              <div class="rounded-2xl bg-white p-5 ring-1 ring-gray-200">
+                <div class="mb-4 flex items-start justify-between">
+                  <div>
+                    <p class="font-bold text-gray-900">📈 {{ pred.serviceName }}</p>
+                    <p class="text-xs text-gray-500">
+                      {{ pred.date }} · Pico esperado: <strong>{{ pred.peakHour }}</strong> ·
+                      Total predicho: <strong>{{ pred.totalPredicted }}</strong> tickets ·
+                      Ventanillas sugeridas: <strong>{{ pred.suggestedWindows }}</strong>
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Gráfico de barras por hora -->
+                <div class="flex items-end gap-1 h-32">
+                  @for (pt of pred.points; track pt.hour) {
+                    <div class="flex flex-1 flex-col items-center gap-0.5">
+                      <div class="w-full flex flex-col items-center justify-end h-28 gap-0.5">
+                        <!-- Barra predicha -->
+                        <div class="w-full rounded-t transition-all"
+                             [class.bg-indigo-300]="pt.actual === null"
+                             [class.bg-indigo-500]="pt.actual !== null"
+                             [style.height.%]="barH(pt.predicted, 20)"
+                             [title]="pt.hour + ': ' + pt.predicted + ' pred.'">
+                        </div>
+                      </div>
+                      <p class="text-[9px] text-gray-400 rotate-0">{{ pt.hour.substring(0,2) }}h</p>
+                      @if (pt.actual !== null) {
+                        <p class="text-[9px] font-bold text-green-600">{{ pt.actual }}</p>
+                      }
+                    </div>
+                  }
+                </div>
+                <p class="mt-1 text-xs text-gray-400">
+                  Azul claro: predicho · Azul oscuro + número verde: real ya disponible
+                </p>
+              </div>
+            }
+          }
+
+        </div>
+      }
+
+    </div>
+  </div>
+
+</div>

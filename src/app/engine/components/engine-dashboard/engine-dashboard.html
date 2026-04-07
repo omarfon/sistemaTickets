@@ -230,7 +230,7 @@
                       </span>
                     </td>
                     <td class="py-2.5 pr-4 text-gray-600">
-                      {{ formatMinutes((now() - ticket.createdAt.getTime()) / 60000) }}
+                      {{ formatMinutes(waitMinutes(ticket.createdAt)) }}
                     </td>
                     <td class="py-2.5">
                       <button
@@ -360,9 +360,7 @@
       @if (activeTab() === 'virtual') {
         <div class="mb-4 flex items-center justify-between">
           <p class="text-sm text-gray-500">
-            {{ virtualTickets().length }} turno(s) virtual(es) —
-            {{ (virtualTickets() | slice:0:100 | json) && '' }}
-            {{ virtualTickets() | filter:'checkedIn':false | count }} pendientes de check-in
+            {{ virtualTickets().length }} turno(s) virtual(es) registrado(s)
           </p>
           <a routerLink="/motor/cola-virtual"
              class="rounded-xl bg-purple-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-purple-700">
