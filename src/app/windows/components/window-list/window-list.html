@@ -23,15 +23,14 @@
           <span class="text-xs font-medium text-red-600">Alertas</span>
         </div>
       }
-      <button type="button"
-        class="flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
-        (click)="rebalance()" title="RF-31: Redistribuir carga automáticamente">
+      <button type="button" (click)="rebalance()" title="RF-31: Redistribuir carga automáticamente"
+        class="flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50">
         ⚖️ Rebalancear
       </button>
-      <a routerLink="/ventanillas/nueva"
+      <button type="button" (click)="openPanel(null)"
         class="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700">
         ➕ Nueva ventanilla
-      </a>
+      </button>
     </div>
   </div>
 
@@ -191,10 +190,10 @@
                   class="rounded-lg bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800 transition-colors hover:bg-blue-200">
                   🖥️ Panel
                 </a>
-                <a [routerLink]="['/ventanillas', s.window.id, 'editar']"
+                <button type="button" (click)="openPanel(s.window.id)"
                   class="rounded-lg bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200">
                   ✏️
-                </a>
+                </button>
               </div>
             </footer>
 
@@ -205,3 +204,45 @@
   }
 
 </div>
+
+<!-- ── Panel deslizante: crear / editar ventanilla ─────────────────────── -->
+@if (showPanel()) {
+  <!-- Fondo oscuro (backdrop) -->
+  <div
+    class="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
+    aria-hidden="true"
+    (click)="closePanel()"
+  ></div>
+
+  <!-- Drawer -->
+  <aside
+    class="fixed inset-y-0 right-0 z-50 flex w-full max-w-xl flex-col overflow-y-auto bg-white shadow-2xl"
+    role="dialog"
+    aria-modal="true"
+  >
+    <!-- Cabecera del drawer -->
+    <div class="flex flex-shrink-0 items-center justify-between border-b border-gray-200 px-6 py-4">
+      <div>
+        <h2 class="text-lg font-bold text-gray-900">
+          {{ panelWindowId() ? '✏️ Editar módulo' : '➕ Nuevo módulo / ventanilla' }}
+        </h2>
+        <p class="text-xs text-gray-400">
+          {{ panelWindowId() ? 'Modifica la configuración del puesto' : 'Configura un nuevo puesto de atención' }}
+        </p>
+      </div>
+      <button type="button" (click)="closePanel()"
+        class="rounded-xl p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
+        aria-label="Cerrar panel">
+        ✕
+      </button>
+    </div>
+
+    <!-- Contenido del formulario -->
+    <div class="flex-1 p-6">
+      <app-window-form
+        [panelEditId]="panelWindowId()"
+        (closePanel)="closePanel()"
+      />
+    </div>
+  </aside>
+}

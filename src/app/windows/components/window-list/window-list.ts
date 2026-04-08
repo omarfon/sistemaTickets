@@ -6,6 +6,7 @@ import {
   signal,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { WindowFormComponent } from '../window-form/window-form';
 import { WindowService } from '../../services/window.service';
 import { WindowStatus, WINDOW_STATUS_LABELS, WINDOW_STATUS_CSS, WINDOW_STATUS_DOT } from '../../enums/window-status.enum';
 import { WindowAlertLevel, WINDOW_ALERT_CSS } from '../../enums/window-alert.enum';
@@ -22,18 +23,32 @@ type DashboardFilter = 'all' | WindowStatus;
 @Component({
   selector: 'app-window-list',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink],
+  imports: [RouterLink, WindowFormComponent],
   templateUrl: './window-list.html',
 })
 export class WindowListComponent {
   private readonly windowService = inject(WindowService);
 
-  // ─── Exposición de datos ─────────────────────────────────────────────────
+  // ─── Exposición de datos ───────────────────────────────────────────
 
   readonly summaries      = this.windowService.windowSummaries;
   readonly alerts         = this.windowService.activeAlerts;
   readonly totalAvailable = this.windowService.totalAvailable;
   readonly totalOccupied  = this.windowService.totalOccupied;
+
+  // ─── Panel deslizante (drawer) ──────────────────────────────────
+
+  readonly showPanel     = signal(false);
+  readonly panelWindowId = signal<string | null>(null);
+
+  openPanel(id: string | null): void {
+    this.panelWindowId.set(id);
+    this.showPanel.set(true);
+  }
+
+  closePanel(): void {
+    this.showPanel.set(false);
+  }
 
   // ─── Filtrado por estado ─────────────────────────────────────────────────
 

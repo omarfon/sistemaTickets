@@ -1,21 +1,23 @@
 <!-- RF-21 / RF-22 / RF-26 / RF-30 / RF-32 — Formulario de ventanilla -->
 <div class="flex flex-col gap-6">
 
-  <!-- ── Cabecera (patrón estándar) ─────────────────────────────────── -->
-  <div class="flex items-center gap-3">
-    <a routerLink="/ventanillas"
-       class="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-500 shadow-sm transition-colors hover:bg-gray-50 hover:text-blue-600">
-      ← Volver
-    </a>
-    <div>
-      <h1 class="text-2xl font-bold text-gray-900">
-        {{ isEdit() ? '✏️ Editar módulo' : '➕ Nuevo módulo / ventanilla' }}
-      </h1>
-      <p class="mt-0.5 text-sm text-gray-500">
-        {{ isEdit() ? 'Modifica la configuración del puesto de atención' : 'Configura un nuevo puesto de atención clínica' }}
-      </p>
+  <!-- ── Cabecera (solo en página completa, no en panel) ───────────────── -->
+  @if (!panelMode) {
+    <div class="flex items-center gap-3">
+      <a routerLink="/ventanillas"
+         class="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-500 shadow-sm transition-colors hover:bg-gray-50 hover:text-blue-600">
+        ← Volver
+      </a>
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">
+          {{ isEdit() ? '✏️ Editar módulo' : '➕ Nuevo módulo / ventanilla' }}
+        </h1>
+        <p class="mt-0.5 text-sm text-gray-500">
+          {{ isEdit() ? 'Modifica la configuración del puesto de atención' : 'Configura un nuevo puesto de atención clínica' }}
+        </p>
+      </div>
     </div>
-  </div>
+  }
 
   <div class="mx-auto w-full max-w-2xl">
 
@@ -218,10 +220,17 @@
 
     <!-- ── Botones ────────────────────────────────────────────────────── -->
     <div class="flex justify-end gap-3 border-t border-gray-100 pt-2">
-      <a routerLink="/ventanillas"
-        class="rounded-xl border border-gray-300 bg-white px-6 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-        Cancelar
-      </a>
+      @if (panelMode) {
+        <button type="button" (click)="closePanel.emit()"
+          class="rounded-xl border border-gray-300 bg-white px-6 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+          Cancelar
+        </button>
+      } @else {
+        <a routerLink="/ventanillas"
+          class="rounded-xl border border-gray-300 bg-white px-6 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+          Cancelar
+        </a>
+      }
       <button type="submit" [disabled]="saving()"
         class="rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:opacity-50 transition-colors">
         {{ saving() ? 'Guardando…' : (isEdit() ? 'Guardar cambios' : 'Crear módulo') }}

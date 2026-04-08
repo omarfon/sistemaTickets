@@ -2,8 +2,11 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  EventEmitter,
   inject,
+  Input,
   OnInit,
+  Output,
   signal,
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -35,7 +38,42 @@ export class OperatorFormComponent implements OnInit {
   private readonly route           = inject(ActivatedRoute);
   private readonly router          = inject(Router);
 
-  // ─── Modo ────────────────────────────────────────────────────────────────
+  // ─── Modo panel (drawer embebido) ────────────────────────────────────────
+
+  /** Cuando se usa como panel deslizante: null=nuevo, 'id'=editar */
+  @Input() set panelEditId(id: string | null | undefined) {
+    if (id === undefined) return;
+    this.panelMode = true;
+    // Reset
+    this.name             = '';
+    this.email            = '';
+    this.password         = '';
+    this.role             = OperatorRole.Operador;
+    this.assignedWindowId = '';
+    this.scheduleSlots.set([]);
+    this.error.set(null);
+    this.isEdit.set(false);
+    this.operatorId.set(null);
+    if (id) {
+      const op = this.operatorService.getById(id);
+      if (op) {
+        this.isEdit.set(true);
+        this.operatorId.set(id);
+        this.name             = op.name;
+        this.email            = op.email;
+        this.password         = op.password;
+        this.role             = op.role;
+        this.assignedWindowId = op.assignedWindowId ?? '';
+        this.scheduleSlots.set([...op.shifts]);
+      }
+    }
+  }
+
+  panelMode = false;
+
+  @Output() readonly closePanel = new EventEmitter<void>();
+
+  // ─── Modo del formulario ─────────────────────────────────────────────────
 
   readonly isEdit    = signal(false);
   readonly operatorId = signal<string | null>(null);
@@ -80,6 +118,7 @@ export class OperatorFormComponent implements OnInit {
   // ─── Init ────────────────────────────────────────────────────────────────
 
   ngOnInit(): void {
+    if (this.panelMode) return; // el setter panelEditId ya cargó los datos
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.isEdit.set(true);
@@ -156,6 +195,10 @@ export class OperatorFormComponent implements OnInit {
     }
 
     this.saving.set(false);
-    this.router.navigate(['/operadores/supervision']);
+    if (this.panelMode) {
+      this.closePanel.emit();
+    } else {
+      this.router.navigate(['/operadores/supervision']);
+    }
   }
 }

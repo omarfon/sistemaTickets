@@ -7,6 +7,7 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { OperatorFormComponent } from '../operator-form/operator-form';
 import { OperatorService } from '../../services/operator.service';
 import { AuthService }     from '../../services/auth.service';
 import {
@@ -33,7 +34,7 @@ type ListFilter = 'all' | OperatorRole | OperatorStatus;
 @Component({
   selector: 'app-operator-list',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, FormsModule],
+  imports: [RouterLink, FormsModule, OperatorFormComponent],
   templateUrl: './operator-list.html',
 })
 export class OperatorListComponent {
@@ -48,6 +49,20 @@ export class OperatorListComponent {
   readonly totalBusy   = this.operatorService.totalBusy;
   readonly totalBreak  = this.operatorService.totalOnBreak;
   readonly totalOffline= this.operatorService.totalOffline;
+
+  // ─── Panel deslizante (drawer) ──────────────────────────────────────────
+
+  readonly showPanel       = signal(false);
+  readonly panelOperatorId = signal<string | null>(null);
+
+  openPanel(id: string | null): void {
+    this.panelOperatorId.set(id);
+    this.showPanel.set(true);
+  }
+
+  closePanel(): void {
+    this.showPanel.set(false);
+  }
 
   // ─── Filtrado ────────────────────────────────────────────────────────────
 

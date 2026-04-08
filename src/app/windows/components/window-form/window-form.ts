@@ -2,8 +2,11 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  EventEmitter,
   inject,
+  Input,
   OnInit,
+  Output,
   signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -32,6 +35,35 @@ export class WindowFormComponent implements OnInit {
   private readonly ticketService  = inject(TicketService);
   private readonly route          = inject(ActivatedRoute);
   private readonly router         = inject(Router);
+
+  // ─── Modo panel (drawer embebido) ────────────────────────────────────────
+
+  /** Cuando se usa como panel deslizante: pasa null=nuevo, 'id'=editar */
+  @Input() set panelEditId(id: string | null | undefined) {
+    if (id === undefined) return;
+    this.panelMode = true;
+    this._resetForm();
+    if (id) {
+      const win = this.windowService.windows().find(w => w.id === id);
+      if (win) {
+        this.editId.set(id);
+        this.name              = win.name;
+        this.number            = win.number;
+        this.step              = win.step;
+        this.operatorName      = win.operatorName ?? '';
+        this.maxQueueSize      = win.maxQueueSize;
+        this.warnThreshold     = win.warnThreshold;
+        this.criticalThreshold = win.criticalThreshold;
+        this.selectedServiceIds.set(new Set(win.assignedServiceIds));
+        this.selectedPriorities.set(new Set(win.priorityFilter));
+        this.scheduleSlots.set([...win.schedule]);
+      }
+    }
+  }
+
+  panelMode = false;
+
+  @Output() readonly closePanel = new EventEmitter<void>();
 
   // ─── Modo del formulario ─────────────────────────────────────────────────
 
@@ -88,6 +120,8 @@ export class WindowFormComponent implements OnInit {
   // ─── Init ────────────────────────────────────────────────────────────────
 
   ngOnInit(): void {
+    if (this.panelMode) return; // el setter panelEditId ya cargó los datos
+
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) return;
 
@@ -153,6 +187,22 @@ export class WindowFormComponent implements OnInit {
     this.scheduleSlots.update(slots => slots.filter((_, i) => i !== index));
   }
 
+  private _resetForm(): void {
+    this.editId.set(null);
+    this.name = '';
+    this.number = 1;
+    this.step = 1;
+    this.operatorName = '';
+    this.maxQueueSize = 10;
+    this.warnThreshold = 7;
+    this.criticalThreshold = 9;
+    this.selectedServiceIds.set(new Set());
+    this.selectedPriorities.set(new Set());
+    this.scheduleSlots.set([]);
+    this.error.set(null);
+    this.saving.set(false);
+  }
+
   // ─── Guardado ────────────────────────────────────────────────────────────
 
   save(): void {
@@ -184,7 +234,11 @@ export class WindowFormComponent implements OnInit {
       } else {
         this.windowService.createWindow(dto);
       }
-      this.router.navigate(['/ventanillas/dashboard']);
+      if (this.panelMode) {
+        this.closePanel.emit();
+      } else {
+        this.router.navigate(['/ventanillas/dashboard']);
+      }
     } catch {
       this.error.set('Ocurrió un error al guardar. Inténtalo de nuevo.');
       this.saving.set(false);

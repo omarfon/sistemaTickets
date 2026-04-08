@@ -15,12 +15,6 @@ export const OPERATORS_ROUTES: Routes = [
     title: 'Supervisión de operadores',
   },
   {
-    path: 'nuevo',
-    loadComponent: () =>
-      import('./components/operator-form/operator-form').then(m => m.OperatorFormComponent),
-    title: 'Nuevo operador',
-  },
-  {
     path: ':id/editar',
     loadComponent: () =>
       import('./components/operator-form/operator-form').then(m => m.OperatorFormComponent),

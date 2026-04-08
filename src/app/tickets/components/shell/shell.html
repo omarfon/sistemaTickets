@@ -55,17 +55,6 @@
         @if (!sidebarCollapsed()) { <span>Dashboard módulos</span> }
       </a>
 
-      <a
-        routerLink="/ventanillas/nueva"
-        routerLinkActive="!bg-blue-600 !text-white"
-        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-blue-200 transition-colors hover:bg-blue-900 hover:text-white"
-        ariaCurrentWhenActive="page"
-        title="Nueva ventanilla (RF-21)"
-      >
-        <span class="flex-shrink-0 text-base">➕</span>
-        @if (!sidebarCollapsed()) { <span>Nueva ventanilla</span> }
-      </a>
-
       <hr class="my-3 border-blue-950/60" />
 
       <!-- Sección: Canales -->
@@ -126,17 +115,6 @@
       >
         <span class="flex-shrink-0 text-base">👥</span>
         @if (!sidebarCollapsed()) { <span>Supervisión</span> }
-      </a>
-
-      <a
-        routerLink="/operadores/nuevo"
-        routerLinkActive="!bg-blue-600 !text-white"
-        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-blue-200 transition-colors hover:bg-blue-900 hover:text-white"
-        ariaCurrentWhenActive="page"
-        title="Nuevo operador (RF-36)"
-      >
-        <span class="flex-shrink-0 text-base">🧑‍💼</span>
-        @if (!sidebarCollapsed()) { <span>Nuevo operador</span> }
       </a>
 
       <a
