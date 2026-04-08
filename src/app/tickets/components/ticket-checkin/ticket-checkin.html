@@ -37,14 +37,14 @@
       <form [formGroup]="form" (ngSubmit)="search()" novalidate class="flex flex-col gap-4">
         <div class="flex flex-col gap-1.5">
           <label for="ticketNum" class="text-sm font-medium text-gray-700">
-            Número de turno
+            Número de turno o DNI
           </label>
           <div class="flex gap-2">
             <input
               id="ticketNum"
               type="text"
               formControlName="ticketNumber"
-              placeholder="Ej: A001, B023…"
+              placeholder="Ej: A001, B023 o DNI 40283800"
               class="flex-1 rounded-lg border border-gray-300 px-3 py-2.5 text-sm uppercase placeholder-gray-400 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
               (keyup.enter)="search()"
             />
@@ -73,6 +73,9 @@
               <p class="text-xs text-gray-500">Paciente encontrado</p>
               <p class="text-3xl font-extrabold tracking-widest text-gray-900">{{ ticket.number }}</p>
               <p class="text-sm font-medium text-gray-700">{{ ticket.service.name }}</p>
+              @if (ticket.patientName) {
+                <p class="mt-1 text-sm text-gray-600">👤 {{ ticket.patientName }}</p>
+              }
               <p class="mt-1 text-xs text-gray-500">
                 Espera est.: <strong>{{ ticket.estimatedWaitMinutes }} min</strong>
               </p>
@@ -98,13 +101,59 @@
           }
         </div>
       }
+
+      <!-- Resultados por DNI: lista de tickets del paciente -->
+      @if (searchedByDni()) {
+        @if (foundPatient(); as patient) {
+          <div class="mt-4 flex items-center gap-3 rounded-xl bg-emerald-50 px-4 py-3 ring-1 ring-emerald-200">
+            <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-emerald-500 text-lg font-bold text-white">
+              {{ patient.name.charAt(0) }}
+            </div>
+            <div>
+              <p class="text-sm font-bold text-gray-900">{{ patient.name }}</p>
+              <p class="text-xs text-gray-500">DNI {{ patient.dni }}</p>
+            </div>
+          </div>
+        }
+        @for (ticket of foundTickets(); track ticket.id) {
+          <div class="mt-3 rounded-xl border border-gray-200 bg-gray-50 p-4">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <p class="text-3xl font-extrabold tracking-widest text-gray-900">{{ ticket.number }}</p>
+                <p class="text-sm font-medium text-gray-700">{{ ticket.service.name }}</p>
+                <p class="mt-1 text-xs text-gray-500">
+                  Espera est.: <strong>{{ ticket.estimatedWaitMinutes }} min</strong>
+                </p>
+              </div>
+              @if (ticket.checkedIn) {
+                <span class="inline-flex items-center gap-1 rounded-full bg-teal-100 px-3 py-1 text-sm font-semibold text-teal-800">
+                  ✅ Ya registrado
+                </span>
+              } @else {
+                <span class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-800">
+                  🌐 Pendiente
+                </span>
+              }
+            </div>
+            @if (!ticket.checkedIn) {
+              <button
+                type="button"
+                class="mt-4 w-full rounded-xl bg-teal-600 py-3 text-sm font-semibold text-white hover:bg-teal-700 transition-colors"
+                (click)="confirmCheckIn(ticket)"
+              >
+                📍 Confirmar llegada
+              </button>
+            }
+          </div>
+        }
+      }
     </div>
 
     <!-- Instrucciones -->
     <div class="mt-4 flex gap-3 rounded-xl bg-blue-50 px-4 py-3 ring-1 ring-blue-200">
       <span>💡</span>
       <p class="text-sm text-blue-800">
-        Si reservaste tu turno desde la web o app, usa este módulo para confirmar tu llegada y activar tu turno en la cola.
+        Ingresa tu número de turno (ej: A001) o tu DNI de 8 dígitos para confirmar tu llegada y activar tu turno en la cola.
       </p>
     </div>
   }

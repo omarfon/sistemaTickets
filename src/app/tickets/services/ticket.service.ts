@@ -145,6 +145,8 @@ export class TicketService {
     { dni: '58596061', name: 'Herrera Palomino, Norma Felicitas', age: 41, phone: '983456789', bloodType: 'AB+' },
     { dni: '62636465', name: 'Callo Mamani, Daniel Alonso',       age: 16, phone: '994567890', bloodType: 'O+' },
     { dni: '66676869', name: 'Huanca Apaza, Graciela Trinidad',   age: 70, phone: '905678901', bloodType: 'A+', allergies: 'Ibuprofeno' },
+    { dni: '40283800', name: 'Bienvenido, Usuario',               age: 30, phone: '900000000', bloodType: 'O+' },
+    { dni: '44539552', name: 'López Torres, Andrea Sofía',        age: 28, phone: '912000000', bloodType: 'A+' },
   ];
 
   /** Lista completa de tickets del sistema */
@@ -260,6 +262,16 @@ export class TicketService {
    */
   findPatientByDni(dni: string): Patient | undefined {
     return this._patients.find(p => p.dni === dni.trim());
+  }
+
+  /**
+   * Busca tickets activos (en espera o en atención) de un paciente por su DNI.
+   */
+  findActiveTicketsByDni(dni: string): Ticket[] {
+    return this._tickets().filter(
+      t => t.patientDni === dni.trim() &&
+        (t.status === TicketStatus.EnEspera || t.status === TicketStatus.EnAtencion)
+    );
   }
 
   /**

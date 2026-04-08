@@ -14,7 +14,7 @@ import type { Ticket } from '../../models/ticket.model';
 import type { Patient } from '../../models/patient.model';
 
 /** Pasos del flujo del kiosko */
-type KioskStep = 'dni' | 'service' | 'done';
+type KioskStep = 'dni' | 'done';
 
 /**
  * RF-02: Interfaz táctil de kiosko físico de autoservicio.
@@ -59,6 +59,7 @@ export class TicketKioskComponent {
   readonly selectedPriority = signal<TicketPriority>(TicketPriority.Normal);
   readonly isSubmitting = signal(false);
   readonly createdTicket = signal<Ticket | null>(null);
+  readonly existingTicket = signal<Ticket | null>(null);
 
   // ─── Computados ──────────────────────────────────────────────────────────
 
@@ -105,7 +106,45 @@ export class TicketKioskComponent {
     }
     this.foundPatient.set(patient);
     this.dniError.set('');
-    this.kioskStep.set('service');
+
+    // Buscar tickets activos del paciente
+    const activeTickets = this.ticketService.findActiveTicketsByDni(dni);
+
+    if (activeTickets.length > 0) {
+      // Ya tiene cita activa → mostrar ticket existente y dar pase a Pre-consulta
+      this.existingTicket.set(activeTickets[0]);
+      const triajeService = this.ticketService.services().find(s => s.id === 'svc-triaje');
+      if (triajeService) {
+        const ticket = this.ticketService.createTicket({
+          service: triajeService,
+          priority: activeTickets[0].priority,
+          source: TicketSource.Kiosko,
+          virtualQueue: false,
+          patientDni: patient.dni,
+          patientName: patient.name,
+        });
+        this.ticketService.printTicket(ticket.id);
+        this.createdTicket.set(ticket);
+      }
+    } else {
+      // Sin cita activa → reserva automática para Admisión
+      this.existingTicket.set(null);
+      const admisionService = this.services()[0];
+      if (admisionService) {
+        const ticket = this.ticketService.createTicket({
+          service: admisionService,
+          priority: TicketPriority.Normal,
+          source: TicketSource.Kiosko,
+          virtualQueue: false,
+          patientDni: patient.dni,
+          patientName: patient.name,
+        });
+        this.ticketService.printTicket(ticket.id);
+        this.createdTicket.set(ticket);
+      }
+    }
+
+    this.kioskStep.set('done');
   }
 
   // ─── Selección de servicio y prioridad ───────────────────────────────────
@@ -163,5 +202,6 @@ export class TicketKioskComponent {
     this.backToDni();
     this.isSubmitting.set(false);
     this.createdTicket.set(null);
+    this.existingTicket.set(null);
   }
 }

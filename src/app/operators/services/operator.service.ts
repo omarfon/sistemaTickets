@@ -266,6 +266,48 @@ export class OperatorService {
     return true;
   }
 
+  /**
+   * RF-46: Transferir ticket a otro servicio (cambia de cola).
+   * Funciona tanto con el ticket en atención como con un ticket específico de la cola.
+   */
+  transferTicketToService(
+    fromOperatorId: string,
+    targetServiceId: string,
+    ticketId?: string,
+    reason?: string
+  ): boolean {
+    const op = this.getById(fromOperatorId);
+    if (!op?.assignedWindowId) return false;
+
+    const idToTransfer = ticketId ?? op.currentTicketId;
+    if (!idToTransfer) return false;
+
+    const isCurrentTicket = idToTransfer === op.currentTicketId;
+
+    // Si es un ticket de la cola, sacarlo de la ventanilla primero
+    if (!isCurrentTicket) {
+      this.windowService.dequeueTicket(op.assignedWindowId, idToTransfer);
+    }
+
+    // Transferir en TicketService (cambia servicio y número)
+    const transferred = this.ticketService.transferTicket(idToTransfer, targetServiceId, reason);
+    if (!transferred) return false;
+
+    // Auto-asignar a la mejor ventanilla del servicio destino
+    this.windowService.autoAssign(idToTransfer);
+
+    // Si era el ticket en atención, liberar al operador
+    if (isCurrentTicket) {
+      this._patch(fromOperatorId, {
+        status:          OperatorStatus.Disponible,
+        currentTicketId: undefined,
+      });
+      this.authService.refreshSession(this._operators().find(o => o.id === fromOperatorId)!);
+    }
+
+    return true;
+  }
+
   // ─── RF-48: Notificaciones ───────────────────────────────────────────────
 
   /** Envía una notificación a un operador específico */

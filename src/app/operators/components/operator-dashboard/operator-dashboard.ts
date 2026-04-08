@@ -76,6 +76,13 @@ export class OperatorDashboardComponent implements OnInit {
   );
   transferTargetId = '';
 
+  /** Servicios disponibles para transferencia por servicio */
+  readonly allServices = computed(() => this.ticketService.services());
+  transferServiceId = '';
+  transferReason = '';
+  transferQueueTicketId = '';
+  readonly showTransferPanel = signal(false);
+
   // ─── RF-42: Pausa ────────────────────────────────────────────────────────
 
   breakReason = '';
@@ -153,10 +160,46 @@ export class OperatorDashboardComponent implements OnInit {
     const ok = this.operatorService.transferTicket(this.operatorId(), this.transferTargetId);
     if (ok) {
       this.transferTargetId = '';
-      this._msg('✅ Ticket transferido correctamente.', true);
+      this._msg('\u2705 Ticket transferido a otra ventanilla.', true);
     } else {
-      this._msg('No se pudo transferir. Verifica la capacidad del módulo destino.', false);
+      this._msg('No se pudo transferir. Verifica la capacidad del m\u00f3dulo destino.', false);
     }
+  }
+
+  /** Transfiere el ticket actual o un ticket de la cola a otro servicio */
+  transferToService(ticketId?: string): void {
+    if (!this.transferServiceId) {
+      this._msg('Selecciona un servicio destino.', false);
+      return;
+    }
+    const ok = this.operatorService.transferTicketToService(
+      this.operatorId(),
+      this.transferServiceId,
+      ticketId,
+      this.transferReason || undefined
+    );
+    if (ok) {
+      this.transferServiceId = '';
+      this.transferReason = '';
+      this.transferQueueTicketId = '';
+      this.showTransferPanel.set(false);
+      this._msg('\u2705 Ticket transferido al servicio correctamente.', true);
+    } else {
+      this._msg('No se pudo transferir. Verifica el servicio destino.', false);
+    }
+  }
+
+  /** Abre el panel de transferencia para un ticket de la cola */
+  openTransferForQueueTicket(ticketId: string): void {
+    this.transferQueueTicketId = ticketId;
+    this.showTransferPanel.set(true);
+  }
+
+  cancelTransfer(): void {
+    this.showTransferPanel.set(false);
+    this.transferQueueTicketId = '';
+    this.transferServiceId = '';
+    this.transferReason = '';
   }
 
   // ─── RF-48: Marcar notificación como leída ────────────────────────────────

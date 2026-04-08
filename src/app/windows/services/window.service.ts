@@ -196,6 +196,16 @@ export class WindowService {
     return true;
   }
 
+  /** Remueve un ticket de la cola de una ventanilla sin completarlo ni cancelarlo. */
+  dequeueTicket(windowId: string, ticketId: string): void {
+    this._windows.update(list =>
+      list.map(w => {
+        if (w.id !== windowId) return w;
+        return { ...w, queuedTicketIds: w.queuedTicketIds.filter(id => id !== ticketId) };
+      })
+    );
+  }
+
   // ─── RF-40: Tomar el siguiente ticket de la cola (inicio de atención) ──────
 
   /**
