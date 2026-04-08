@@ -1,11 +1,25 @@
 ﻿<!-- RF-02: Kiosko táctil con identificación por DNI -->
-<div class="flex min-h-full flex-col items-center justify-center gap-4 py-4 px-4">
+<div class="flex min-h-full flex-col items-center justify-center bg-gradient-to-br from-teal-50 via-white to-teal-100 py-6 px-4">
+
+  <!-- Marco del kiosco -->
+  <div class="w-full max-w-sm overflow-hidden rounded-3xl shadow-2xl ring-1 ring-teal-200">
+
+    <!-- Barra de título del kiosco -->
+    <div class="flex items-center justify-between bg-teal-700 px-5 py-3">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">🏥</span>
+        <span class="text-sm font-bold tracking-wide text-white">MediTurno — Kiosco</span>
+      </div>
+      <span class="rounded-full bg-teal-500 px-2.5 py-0.5 text-xs font-semibold text-white">Autoservicio</span>
+    </div>
+
+    <!-- Contenido del kiosco -->
+    <div class="flex flex-col items-center gap-4 bg-white px-5 py-5">
 
   <!-- PASO 1: INGRESO DE DNI CON TECLADO NUMÉRICO -->
   @if (kioskStep() === 'dni') {
-    <div class="w-full max-w-sm">
+    <div class="w-full">
       <div class="mb-4 text-center">
-        <p class="text-4xl mb-2">🏥</p>
         <h1 class="text-2xl font-bold text-teal-800">Ingresa tu DNI</h1>
         <p class="mt-1 text-sm text-teal-600">Usa el teclado para ingresar tus 8 dígitos</p>
       </div>
@@ -61,7 +75,7 @@
   <!-- PASO 2: TURNO EMITIDO -->
   @if (kioskStep() === 'done') {
     @if (createdTicket(); as ticket) {
-      <div class="flex w-full max-w-sm flex-col items-center gap-3 rounded-2xl bg-white p-5 text-center shadow-xl ring-2 ring-emerald-200">
+      <div class="flex w-full flex-col items-center gap-3 text-center">
 
         <!-- Bienvenida al paciente -->
         @if (foundPatient(); as patient) {
@@ -130,5 +144,14 @@
       </div>
     }
   }
+
+    </div><!-- fin contenido kiosco -->
+
+    <!-- Pie del marco -->
+    <div class="bg-teal-700 px-5 py-2 text-center">
+      <p class="text-xs text-teal-300">Sistema de Gestión de Turnos · MediTurno</p>
+    </div>
+
+  </div><!-- fin marco kiosco -->
 
 </div>

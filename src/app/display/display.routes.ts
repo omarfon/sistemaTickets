@@ -7,34 +7,17 @@ import { Routes } from '@angular/router';
  * /display/configuracion       → DisplayConfigComponent  (panel admin, con shell)
  */
 export const DISPLAY_ROUTES: Routes = [
-
-  // ─── RF-51/54/58: Pantalla de TV / Kiosko (sin shell) ─────────────────
+  // ─── Configuración (con shell, gestionado desde app.routes.ts) ──────────────
   {
-    path: 'pantalla/:screenId',
+    path: 'configuracion',
     loadComponent: () =>
-      import('./components/display-board/display-board').then(
-        m => m.DisplayBoardComponent,
+      import('./components/display-config/display-config').then(
+        m => m.DisplayConfigComponent,
       ),
   },
-
-  // ─── Configuración dentro del shell estándar ──────────────────────────
   {
     path: '',
-    loadComponent: () =>
-      import('../tickets/components/shell/shell').then(m => m.TicketsShellComponent),
-    children: [
-      {
-        path: 'configuracion',
-        loadComponent: () =>
-          import('./components/display-config/display-config').then(
-            m => m.DisplayConfigComponent,
-          ),
-      },
-      {
-        path: '',
-        redirectTo: 'configuracion',
-        pathMatch: 'full',
-      },
-    ],
+    redirectTo: 'configuracion',
+    pathMatch: 'full',
   },
 ];

@@ -1,6 +1,15 @@
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
+  // ─── Pantallas TV: sin shell (pantalla completa) ──────────────────────────────
+  {
+    path: 'display/pantalla/:screenId',
+    loadComponent: () =>
+      import('./display/components/display-board/display-board').then(
+        m => m.DisplayBoardComponent,
+      ),
+  },
+  // ─── Resto de la app: con shell (sidebar + topbar) ───────────────────────
   {
     path: '',
     loadComponent: () =>

@@ -100,12 +100,14 @@ export class DisplayService {
     windowName:   string,
     windowNumber: number,
     config?:      DisplayConfig,
+    cancelFirst  = true,   // false en carga inicial para encolar varios turnos
   ): void {
     if (!config?.audioEnabled)        return;
     if (!('speechSynthesis' in window)) return;
 
-    // Cancelar cualquier anuncio en curso
-    window.speechSynthesis.cancel();
+    if (cancelFirst) {
+      window.speechSynthesis.cancel();
+    }
 
     const utterance = new SpeechSynthesisUtterance(
       `Turno ${ticketNumber}, por favor acuda a ${windowName}, módulo ${windowNumber}`

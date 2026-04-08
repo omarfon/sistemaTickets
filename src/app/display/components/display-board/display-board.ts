@@ -103,7 +103,8 @@ export class DisplayBoardComponent implements OnDestroy {
   // ─── RF-52: Seguimiento de cambios para detección de nuevos tickets ───────
 
   private readonly _prevTicketIds = new Map<string, string>(); // windowId → ticketId
-  private _firstRender = true; // primer ciclo: solo poblar el mapa, no anunciar
+  readonly audioStarted  = signal(false); // true tras el primer clic del usuario
+  private _isInitialBatch = false;        // true solo en el primer run post-activación
   private readonly _clockInterval:  ReturnType<typeof setInterval>;
   private readonly _tickerInterval: ReturnType<typeof setInterval>;
 
@@ -124,6 +125,19 @@ export class DisplayBoardComponent implements OnDestroy {
       const summaries = this.activeSummaries();
       const cfg       = this.config();
 
+      // Antes de que el usuario active el audio: solo poblar el mapa en silencio.
+      if (!this.audioStarted()) {
+        summaries.forEach(s => {
+          if (s.currentTicket) this._prevTicketIds.set(s.window.id, s.currentTicket.id);
+        });
+        return;
+      }
+
+      // Lote inicial (justo tras pulsar «Iniciar pantalla»): encolar sin cancelar.
+      // Turnos nuevos durante operación normal: interrumpir y anunciar de inmediato.
+      const isInitialBatch = this._isInitialBatch;
+      this._isInitialBatch = false;
+
       summaries.forEach(s => {
         const tid  = s.currentTicket?.id;
         const prev = this._prevTicketIds.get(s.window.id);
@@ -131,20 +145,18 @@ export class DisplayBoardComponent implements OnDestroy {
         if (tid && tid !== prev) {
           this._prevTicketIds.set(s.window.id, tid);
 
-          // En el primer render solo se registra el historial,
-          // NO se anuncia por voz (evitar que suenen todos los turnos al abrir)
-          if (!this._firstRender && s.currentTicket) {
+          if (s.currentTicket) {
             const record = this.displayService.registerCall(
               s.window,
               s.currentTicket,
               cfg?.branch.name ?? 'Sede Central',
             );
-            // RF-52: anuncio de voz solo para tickets NUEVOS
             this.displayService.announceCall(
               record.ticketNumber,
               record.windowName,
               record.windowNumber,
               cfg,
+              !isInitialBatch, // false=encolar en lote inicial; true=interrumpir para nuevos
             );
           }
         }
@@ -156,10 +168,14 @@ export class DisplayBoardComponent implements OnDestroy {
           this._prevTicketIds.delete(winId);
         }
       });
-
-      // Marcar que el primer ciclo ya pasó
-      this._firstRender = false;
     });
+  }
+
+  /** Llamado al primer clic del usuario: desbloquea el audio y anuncia todos los turnos activos. */
+  startAudio(): void {
+    this._isInitialBatch = true;
+    this._prevTicketIds.clear(); // forzar re-anuncio de todos los turnos activos
+    this.audioStarted.set(true);
   }
 
   ngOnDestroy(): void {

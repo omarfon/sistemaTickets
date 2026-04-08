@@ -1,15 +1,15 @@
-<div class="flex h-screen overflow-hidden bg-gray-50">
+﻿<div class="flex h-screen overflow-hidden bg-gray-50">
 
-  <!-- ── Sidebar ────────────────────────────────────────────────── -->
+  <!-- ── Sidebar ───────────────────────────────────────────────── -->
   <aside [class]="sidebarClasses()" aria-label="Menú principal">
 
     <!-- Logo -->
-    <div class="flex items-center gap-3 border-b border-slate-700/60 px-4 py-5">
-      <span class="flex-shrink-0 text-2xl">�</span>
+    <div class="flex items-center gap-3 border-b border-blue-950/60 px-4 py-5">
+      <span class="flex-shrink-0 text-2xl">🏥</span>
       @if (!sidebarCollapsed()) {
         <div class="min-w-0">
           <p class="truncate text-sm font-bold tracking-wide text-white">MediTurno Clínica</p>
-          <p class="truncate text-xs text-slate-400">Gestión de pacientes</p>
+          <p class="truncate text-xs text-blue-300">Gestión de pacientes</p>
         </div>
       }
     </div>
@@ -19,15 +19,15 @@
 
       <!-- Sección: Tickets -->
       @if (!sidebarCollapsed()) {
-        <p class="px-3 pb-2 pt-2 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+        <p class="px-3 pb-2 pt-2 text-[10px] font-semibold uppercase tracking-widest text-blue-400">
           Gestión de Pacientes
         </p>
       }
 
       <a
         routerLink="/tickets/lista"
-        routerLinkActive="!bg-teal-600 !text-white"
-        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+        routerLinkActive="!bg-blue-600 !text-white"
+        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-blue-200 transition-colors hover:bg-blue-900 hover:text-white"
         ariaCurrentWhenActive="page"
         title="Cola de pacientes"
       >
@@ -35,30 +35,19 @@
         @if (!sidebarCollapsed()) { <span>Cola de pacientes</span> }
       </a>
 
-      <a
-        routerLink="/tickets/atencion"
-        routerLinkActive="!bg-teal-600 !text-white"
-        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
-        ariaCurrentWhenActive="page"
-        title="Panel operador"
-      >
-        <span class="flex-shrink-0 text-base">🖥️</span>
-        @if (!sidebarCollapsed()) { <span>Panel operador</span> }
-      </a>
-
-      <hr class="my-3 border-slate-700/60" />
+      <hr class="my-3 border-blue-950/60" />
 
       <!-- Sección: Ventanillas / Módulos -->
       @if (!sidebarCollapsed()) {
-        <p class="px-3 pb-2 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
-          Módulo 2 — Ventanillas
+        <p class="px-3 pb-2 text-[10px] font-semibold uppercase tracking-widest text-blue-400">
+          Ventanillas
         </p>
       }
 
       <a
         routerLink="/ventanillas/dashboard"
-        routerLinkActive="!bg-teal-600 !text-white"
-        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+        routerLinkActive="!bg-blue-600 !text-white"
+        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-blue-200 transition-colors hover:bg-blue-900 hover:text-white"
         ariaCurrentWhenActive="page"
         title="Dashboard de ventanillas (RF-29)"
       >
@@ -68,8 +57,8 @@
 
       <a
         routerLink="/ventanillas/nueva"
-        routerLinkActive="!bg-teal-600 !text-white"
-        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+        routerLinkActive="!bg-blue-600 !text-white"
+        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-blue-200 transition-colors hover:bg-blue-900 hover:text-white"
         ariaCurrentWhenActive="page"
         title="Nueva ventanilla (RF-21)"
       >
@@ -77,19 +66,19 @@
         @if (!sidebarCollapsed()) { <span>Nueva ventanilla</span> }
       </a>
 
-      <hr class="my-3 border-slate-700/60" />
+      <hr class="my-3 border-blue-950/60" />
 
       <!-- Sección: Canales -->
       @if (!sidebarCollapsed()) {
-        <p class="px-3 pb-2 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+        <p class="px-3 pb-2 text-[10px] font-semibold uppercase tracking-widest text-blue-400">
           Canales de entrada
         </p>
       }
 
       <a
         routerLink="/tickets/kiosko"
-        routerLinkActive="!bg-teal-600 !text-white"
-        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+        routerLinkActive="!bg-blue-600 !text-white"
+        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-blue-200 transition-colors hover:bg-blue-900 hover:text-white"
         ariaCurrentWhenActive="page"
         title="Kiosko (RF-02)"
       >
@@ -99,8 +88,8 @@
 
       <a
         routerLink="/tickets/virtual"
-        routerLinkActive="!bg-teal-600 !text-white"
-        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+        routerLinkActive="!bg-blue-600 !text-white"
+        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-blue-200 transition-colors hover:bg-blue-900 hover:text-white"
         ariaCurrentWhenActive="page"
         title="Cola Virtual web (RF-03/RF-19)"
       >
@@ -111,7 +100,7 @@
       <a
         routerLink="/tickets/checkin"
         routerLinkActive="!bg-blue-600 !text-white"
-        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-blue-200 transition-colors hover:bg-blue-900 hover:text-white"
         ariaCurrentWhenActive="page"
         title="Check-in de llegada (RF-20)"
       >
@@ -119,19 +108,19 @@
         @if (!sidebarCollapsed()) { <span>Check-in</span> }
       </a>
 
-      <hr class="my-3 border-slate-700/60" />
+      <hr class="my-3 border-blue-950/60" />
 
       <!-- Sección: Módulo 3 — Operadores -->
       @if (!sidebarCollapsed()) {
-        <p class="px-3 pb-2 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
-          Módulo 3 — Operadores
+        <p class="px-3 pb-2 text-[10px] font-semibold uppercase tracking-widest text-blue-400">
+          Operadores
         </p>
       }
 
       <a
         routerLink="/operadores/supervision"
-        routerLinkActive="!bg-teal-600 !text-white"
-        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+        routerLinkActive="!bg-blue-600 !text-white"
+        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-blue-200 transition-colors hover:bg-blue-900 hover:text-white"
         ariaCurrentWhenActive="page"
         title="Supervisión en tiempo real (RF-47)"
       >
@@ -142,7 +131,7 @@
       <a
         routerLink="/operadores/nuevo"
         routerLinkActive="!bg-blue-600 !text-white"
-        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-blue-200 transition-colors hover:bg-blue-900 hover:text-white"
         ariaCurrentWhenActive="page"
         title="Nuevo operador (RF-36)"
       >
@@ -152,8 +141,8 @@
 
       <a
         routerLink="/operadores/panel"
-        routerLinkActive="!bg-teal-600 !text-white"
-        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+        routerLinkActive="!bg-blue-600 !text-white"
+        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-blue-200 transition-colors hover:bg-blue-900 hover:text-white"
         ariaCurrentWhenActive="page"
         title="Panel de trabajo (RF-40/41/42)"
       >
@@ -163,8 +152,8 @@
 
       <a
         routerLink="/operadores/login"
-        routerLinkActive="!bg-teal-600 !text-white"
-        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+        routerLinkActive="!bg-blue-600 !text-white"
+        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-blue-200 transition-colors hover:bg-blue-900 hover:text-white"
         ariaCurrentWhenActive="page"
         title="Login de operador (RF-37)"
       >
@@ -172,19 +161,19 @@
         @if (!sidebarCollapsed()) { <span>Iniciar sesión</span> }
       </a>
 
-      <hr class="my-3 border-slate-700/60" />
+      <hr class="my-3 border-blue-950/60" />
 
       <!-- Sección: Módulo 4 — Panel y Display -->
       @if (!sidebarCollapsed()) {
-        <p class="px-3 pb-2 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
-          Módulo 4 — Panel y Display
+        <p class="px-3 pb-2 text-[10px] font-semibold uppercase tracking-widest text-blue-400">
+          Panel y Display
         </p>
       }
 
       <a
         routerLink="/display/configuracion"
         routerLinkActive="!bg-blue-600 !text-white"
-        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-blue-200 transition-colors hover:bg-blue-900 hover:text-white"
         ariaCurrentWhenActive="page"
         title="Configuración de pantallas (RF-54/55/56)"
       >
@@ -196,7 +185,7 @@
         href="/display/pantalla/1"
         target="_blank"
         rel="noopener noreferrer"
-        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-blue-200 transition-colors hover:bg-blue-900 hover:text-white"
         title="Pantalla de TV — Admisión (RF-51/58)"
       >
         <span class="flex-shrink-0 text-base">🖥️</span>
@@ -207,26 +196,26 @@
         href="/display/pantalla/2"
         target="_blank"
         rel="noopener noreferrer"
-        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-blue-200 transition-colors hover:bg-blue-900 hover:text-white"
         title="Pantalla de TV — Consultorios (RF-51/58)"
       >
         <span class="flex-shrink-0 text-base">🖥️</span>
         @if (!sidebarCollapsed()) { <span>Pantalla 2 — Consultorios</span> }
       </a>
 
-      <hr class="my-3 border-slate-700/60" />
+      <hr class="my-3 border-blue-950/60" />
 
       <!-- Sección: Módulo 5 — Motor de Colas -->
       @if (!sidebarCollapsed()) {
-        <p class="px-3 pb-2 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
-          Módulo 5 — Motor de Colas
+        <p class="px-3 pb-2 text-[10px] font-semibold uppercase tracking-widest text-blue-400">
+          Motor de Colas
         </p>
       }
 
       <a
         routerLink="/motor/dashboard"
-        routerLinkActive="!bg-indigo-600 !text-white"
-        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+        routerLinkActive="!bg-blue-600 !text-white"
+        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-blue-200 transition-colors hover:bg-blue-900 hover:text-white"
         ariaCurrentWhenActive="page"
         title="Dashboard del motor (RF-61 a RF-63, RF-70)"
       >
@@ -236,8 +225,8 @@
 
       <a
         routerLink="/motor/reglas"
-        routerLinkActive="!bg-indigo-600 !text-white"
-        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+        routerLinkActive="!bg-blue-600 !text-white"
+        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-blue-200 transition-colors hover:bg-blue-900 hover:text-white"
         ariaCurrentWhenActive="page"
         title="Reglas y SLA (RF-63, RF-64, RF-71, RF-73, RF-74)"
       >
@@ -247,8 +236,8 @@
 
       <a
         routerLink="/motor/simulacion"
-        routerLinkActive="!bg-indigo-600 !text-white"
-        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+        routerLinkActive="!bg-blue-600 !text-white"
+        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-blue-200 transition-colors hover:bg-blue-900 hover:text-white"
         ariaCurrentWhenActive="page"
         title="Simulación y predicción (RF-68, RF-69)"
       >
@@ -258,8 +247,8 @@
 
       <a
         routerLink="/motor/cola-virtual"
-        routerLinkActive="!bg-indigo-600 !text-white"
-        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+        routerLinkActive="!bg-blue-600 !text-white"
+        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-blue-200 transition-colors hover:bg-blue-900 hover:text-white"
         ariaCurrentWhenActive="page"
         title="Cola virtual (RF-72)"
       >
@@ -267,36 +256,36 @@
         @if (!sidebarCollapsed()) { <span>Cola virtual</span> }
       </a>
 
-      <hr class="my-3 border-slate-700/60" />
+      <hr class="my-3 border-blue-950/60" />
 
       <!-- Sección: Próximamente -->
       @if (!sidebarCollapsed()) {
-        <p class="px-3 pb-2 text-[10px] font-semibold uppercase tracking-widest text-slate-600">
+        <p class="px-3 pb-2 text-[10px] font-semibold uppercase tracking-widest text-blue-600">
           Próximamente
         </p>
       }
 
       <span
-        class="flex cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600"
+        class="flex cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-blue-700"
         title="Reportes (próximamente)"
       >
         <span class="flex-shrink-0 text-base">📊</span>
         @if (!sidebarCollapsed()) { <span>Reportes</span> }
       </span>
 
-      <hr class="my-3 border-slate-700/60" />
+      <hr class="my-3 border-blue-950/60" />
 
       <!-- Sección: Sistema -->
       @if (!sidebarCollapsed()) {
-        <p class="px-3 pb-2 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+        <p class="px-3 pb-2 text-[10px] font-semibold uppercase tracking-widest text-blue-400">
           Sistema
         </p>
       }
 
       <a
         routerLink="/configuracion/sistema"
-        routerLinkActive="!bg-teal-600 !text-white"
-        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+        routerLinkActive="!bg-blue-600 !text-white"
+        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-blue-200 transition-colors hover:bg-blue-900 hover:text-white"
         ariaCurrentWhenActive="page"
         title="Configuración del sistema"
       >
@@ -307,11 +296,11 @@
     </nav>
 
     <!-- Botón colapsar -->
-    <div class="border-t border-slate-700/60 px-3 py-3">
+    <div class="border-t border-blue-950/60 px-3 py-3">
       <button
         type="button"
         (click)="sidebarCollapsed.update(v => !v)"
-        class="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-xs text-slate-500 transition-colors hover:bg-slate-800 hover:text-slate-300"
+        class="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-xs text-blue-400 transition-colors hover:bg-blue-900 hover:text-blue-200"
         [attr.aria-label]="sidebarCollapsed() ? 'Expandir menú' : 'Colapsar menú'"
       >
         <span class="flex-shrink-0 text-base">{{ sidebarCollapsed() ? '→' : '←' }}</span>

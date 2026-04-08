@@ -1,5 +1,29 @@
 <!-- RF-51/52/53/54/57/58/60 — Panel de Display TV / Kiosko -->
 
+<!-- ── Overlay de activación de audio (requerido por política de autoplay) ── -->
+@if (!audioStarted()) {
+  <div
+    class="fixed inset-0 z-50 flex cursor-pointer flex-col items-center justify-center bg-black/80 backdrop-blur-sm"
+    role="button"
+    tabindex="0"
+    aria-label="Toca para activar el audio del sistema"
+    (click)="startAudio()"
+    (keydown.enter)="startAudio()"
+    (keydown.space)="$event.preventDefault(); startAudio()"
+  >
+    <div class="flex flex-col items-center gap-6 rounded-3xl bg-white/10 p-14 text-white shadow-2xl ring-1 ring-white/20">
+      <span class="animate-bounce text-9xl" aria-hidden="true">🔊</span>
+      <h2 class="text-4xl font-extrabold tracking-tight">Toca para activar</h2>
+      <p class="max-w-xs text-center text-lg opacity-70">
+        El sistema anunciará los turnos por voz automáticamente
+      </p>
+      <div class="mt-2 rounded-full bg-white/20 px-8 py-3 text-sm font-bold uppercase tracking-widest">
+        Iniciar pantalla
+      </div>
+    </div>
+  </div>
+}
+
 @if (config(); as cfg) {
 
   <!-- ─── Contenedor principal ─────────────────────────────────────────── -->

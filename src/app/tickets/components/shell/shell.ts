@@ -21,7 +21,7 @@ export class TicketsShellComponent {
 
   readonly sidebarClasses = computed(() =>
     this.sidebarCollapsed()
-      ? 'flex w-16 flex-shrink-0 flex-col bg-slate-900 transition-all duration-300 overflow-hidden'
-      : 'flex w-60 flex-shrink-0 flex-col bg-slate-900 transition-all duration-300'
+      ? 'flex w-16 flex-shrink-0 flex-col bg-blue-950 transition-all duration-300 overflow-hidden'
+      : 'flex w-60 flex-shrink-0 flex-col bg-blue-950 transition-all duration-300'
   );
 }
