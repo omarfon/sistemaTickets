@@ -60,6 +60,8 @@ export class TicketKioskComponent {
   readonly isSubmitting = signal(false);
   readonly createdTicket = signal<Ticket | null>(null);
   readonly existingTicket = signal<Ticket | null>(null);
+  readonly countdown = signal(30);
+  private countdownInterval: ReturnType<typeof setInterval> | null = null;
 
   // ─── Computados ──────────────────────────────────────────────────────────
 
@@ -145,6 +147,7 @@ export class TicketKioskComponent {
     }
 
     this.kioskStep.set('done');
+    this.startCountdown();
   }
 
   // ─── Selección de servicio y prioridad ───────────────────────────────────
@@ -180,6 +183,7 @@ export class TicketKioskComponent {
     this.createdTicket.set(ticket);
     this.isSubmitting.set(false);
     this.kioskStep.set('done');
+    this.startCountdown();
 
     // RF-14: Dispara impresión automática del comprobante
     if (isPlatformBrowser(this.platformId)) {
@@ -199,9 +203,33 @@ export class TicketKioskComponent {
   }
 
   reset(): void {
+    this.clearCountdown();
     this.backToDni();
     this.isSubmitting.set(false);
     this.createdTicket.set(null);
     this.existingTicket.set(null);
+  }
+
+  // ─── Temporizador de retorno automático ──────────────────────────────────
+
+  private startCountdown(): void {
+    this.clearCountdown();
+    this.countdown.set(30);
+    if (!isPlatformBrowser(this.platformId)) return;
+    this.countdownInterval = setInterval(() => {
+      const current = this.countdown();
+      if (current <= 1) {
+        this.reset();
+      } else {
+        this.countdown.update(v => v - 1);
+      }
+    }, 1000);
+  }
+
+  private clearCountdown(): void {
+    if (this.countdownInterval !== null) {
+      clearInterval(this.countdownInterval);
+      this.countdownInterval = null;
+    }
   }
 }

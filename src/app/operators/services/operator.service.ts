@@ -447,7 +447,7 @@ export class OperatorService {
         password:          'admin123',
         role:              OperatorRole.Admin,
         status:            OperatorStatus.Disponible,
-        assignedWindowId:  'win-1',
+        assignedWindowId:  'win-01',
         currentTicketId:   undefined,
         shifts,
         history: [
@@ -489,8 +489,8 @@ export class OperatorService {
         email:             'ana.mendoza@mediturno.pe',
         password:          'op123',
         role:              OperatorRole.Operador,
-        status:            OperatorStatus.Ocupado,
-        assignedWindowId:  'win-2',
+        status:            OperatorStatus.Disponible,
+        assignedWindowId:  'win-02',
         currentTicketId:   undefined,
         shifts,
         history: [
@@ -512,7 +512,7 @@ export class OperatorService {
         password:          'op123',
         role:              OperatorRole.Operador,
         status:            OperatorStatus.EnPausa,
-        assignedWindowId:  'win-3',
+        assignedWindowId:  'win-03',
         currentTicketId:   undefined,
         breakReason:       'Refrigerio',
         breakStartedAt:    ago(0, 20),
@@ -537,7 +537,7 @@ export class OperatorService {
         password:          'op123',
         role:              OperatorRole.Operador,
         status:            OperatorStatus.Disponible,
-        assignedWindowId:  'win-4',
+        assignedWindowId:  'win-04',
         currentTicketId:   undefined,
         shifts,
         history: [

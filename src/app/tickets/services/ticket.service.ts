@@ -6,6 +6,7 @@ import { TicketEvent } from '../enums/ticket-event.enum';
 import { CreateTicketDto, QueueSummary, Ticket, TicketHistoryEntry } from '../models/ticket.model';
 import { ServiceType } from '../models/service-type.model';
 import { Patient } from '../models/patient.model';
+import { SettingsService } from '../../settings/services/settings.service';
 
 /**
  * Servicio principal del módulo de gestión de tickets.
@@ -20,95 +21,9 @@ import { Patient } from '../models/patient.model';
 export class TicketService {
   // ─── Servicios disponibles (datos semilla — flujo clínico) ───────────────
   //     Paso 1: Admisión  →  Paso 2: Pre-consulta  →  Paso 3: Especialista
-  readonly services = signal<ServiceType[]>([
-    // ── PASO 1: ADMISIÓN ────────────────────────────────────────────────────
-    {
-      id: 'svc-admision-caja',
-      name: 'Caja / Pagos',
-      prefix: 'A',
-      description: 'Pago de servicios, copagos y tarifas de consulta',
-      avgAttentionTimeMinutes: 5,
-      isActive: true,
-      windowCount: 3,
-      step: 1,
-      icon: '💳',
-      windowLabel: 'Ventanilla',
-    },
-    {
-      id: 'svc-admision-citas',
-      name: 'Citas y Reservas',
-      prefix: 'B',
-      description: 'Reserva, confirmación y modificación de citas médicas',
-      avgAttentionTimeMinutes: 8,
-      isActive: true,
-      windowCount: 2,
-      step: 1,
-      icon: '📅',
-      windowLabel: 'Módulo',
-    },
-    {
-      id: 'svc-admision-info',
-      name: 'Información General',
-      prefix: 'C',
-      description: 'Orientación, trámites administrativos y documentación',
-      avgAttentionTimeMinutes: 4,
-      isActive: true,
-      windowCount: 1,
-      step: 1,
-      icon: 'ℹ️',
-      windowLabel: 'Módulo',
-    },
-    // ── PASO 2: PRE-CONSULTA / TRIAJE ───────────────────────────────────────
-    {
-      id: 'svc-triaje',
-      name: 'Pre-consulta (Triaje)',
-      prefix: 'T',
-      description: 'Evaluación de signos vitales y clasificación de urgencia',
-      avgAttentionTimeMinutes: 10,
-      isActive: true,
-      windowCount: 3,
-      step: 2,
-      icon: '🩺',
-      windowLabel: 'Consultorio',
-    },
-    // ── PASO 3: ESPECIALISTAS ───────────────────────────────────────────────
-    {
-      id: 'svc-medicina',
-      name: 'Medicina General',
-      prefix: 'M',
-      description: 'Consulta con médico general',
-      avgAttentionTimeMinutes: 20,
-      isActive: true,
-      windowCount: 4,
-      step: 3,
-      icon: '👨‍⚕️',
-      windowLabel: 'Consultorio',
-    },
-    {
-      id: 'svc-pediatria',
-      name: 'Pediatría',
-      prefix: 'P',
-      description: 'Atención pediátrica para pacientes menores de 18 años',
-      avgAttentionTimeMinutes: 20,
-      isActive: true,
-      windowCount: 2,
-      step: 3,
-      icon: '🧒',
-      windowLabel: 'Consultorio',
-    },
-    {
-      id: 'svc-especialidades',
-      name: 'Especialidades',
-      prefix: 'E',
-      description: 'Cardiología, Traumatología, Ginecología y otras especialidades',
-      avgAttentionTimeMinutes: 25,
-      isActive: true,
-      windowCount: 3,
-      step: 3,
-      icon: '🏥',
-      windowLabel: 'Consultorio',
-    },
-  ]);
+  //     NOTA: Los servicios se cargan del SettingsService en vivo
+  readonly services = computed(() => this.settingsService.services());
+
 
   // ─── Estado principal ────────────────────────────────────────────────────
 
@@ -155,7 +70,7 @@ export class TicketService {
   /** Contadores por prefijo de servicio para la numeración secuencial */
   private readonly _counters = signal<Record<string, number>>({});
 
-  constructor() {
+  constructor(private readonly settingsService: SettingsService) {
     this._loadSeedData();
   }
 

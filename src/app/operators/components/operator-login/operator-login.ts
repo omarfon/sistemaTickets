@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
   signal,
 } from '@angular/core';
@@ -8,11 +9,14 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService }     from '../../services/auth.service';
 import { OperatorService } from '../../services/operator.service';
-import { OperatorRole, OPERATOR_ROLE_LABELS, OPERATOR_ROLE_ICON } from '../../enums/operator-role.enum';
+import { OperatorRole, OPERATOR_ROLE_LABELS, OPERATOR_ROLE_ICON, OPERATOR_ROLE_CSS } from '../../enums/operator-role.enum';
+import { OperatorStatus, OPERATOR_STATUS_LABELS, OPERATOR_STATUS_DOT } from '../../enums/operator-status.enum';
+import type { Operator } from '../../models/operator.model';
 
 /**
  * RF-37 — Pantalla de login del operador.
- * Autenticación por email + contraseña con acceso rápido por perfil.
+ * Modo demo: selector de perfil con un click.
+ * Modo avanzado: formulario email + contraseña.
  */
 @Component({
   selector: 'app-operator-login',
@@ -32,22 +36,34 @@ export class OperatorLoginComponent {
 
   // ─── Estado ─────────────────────────────────────────────────────────────
 
-  readonly loading = signal(false);
-  readonly error   = signal<string | null>(null);
+  readonly loading              = signal(false);
+  readonly error                = signal<string | null>(null);
+  readonly showCredentialsForm  = signal(false);
 
-  // ─── Accesos rápidos (modo prototipo) ───────────────────────────────────
+  // ─── Operadores disponibles para el selector de perfil ──────────────────
 
-  readonly quickAccess = [
-    { label: 'Administrador', email: 'admin@mediturno.pe',       password: 'admin123', role: OperatorRole.Admin },
-    { label: 'Supervisor',    email: 'supervisor@mediturno.pe',  password: 'super123', role: OperatorRole.Supervisor },
-    { label: 'Operador',      email: 'ana.mendoza@mediturno.pe', password: 'op123',    role: OperatorRole.Operador },
-  ];
+  /** Todos los operadores activos (no Offline) — para el selector rápido */
+  readonly profileOperators = computed(() =>
+    this.operatorService.operators().filter(o => o.status !== OperatorStatus.Offline)
+  );
 
-  readonly OperatorRole      = OperatorRole;
-  readonly roleLabels        = OPERATOR_ROLE_LABELS;
-  readonly roleIcon          = OPERATOR_ROLE_ICON;
+  readonly OperatorRole   = OperatorRole;
+  readonly OperatorStatus = OperatorStatus;
+  readonly roleLabels     = OPERATOR_ROLE_LABELS;
+  readonly roleIcons      = OPERATOR_ROLE_ICON;
+  readonly roleCss        = OPERATOR_ROLE_CSS;
+  readonly statusLabels   = OPERATOR_STATUS_LABELS;
+  readonly statusDot      = OPERATOR_STATUS_DOT;
 
-  // ─── RF-37: Login ────────────────────────────────────────────────────────
+  // ─── Login rápido (fake / demo) ──────────────────────────────────────────
+
+  /** Login directo sin contraseña — solo para prototipo */
+  loginAs(op: Operator): void {
+    this.authService.setSession({ ...op, status: OperatorStatus.Disponible, lastLoginAt: new Date() });
+    this._redirect(op.role);
+  }
+
+  // ─── RF-37: Login con credenciales ───────────────────────────────────────
 
   login(): void {
     this.error.set(null);
@@ -69,17 +85,15 @@ export class OperatorLoginComponent {
       return;
     }
 
-    // Redirige según rol
-    if (result.role === OperatorRole.Admin || result.role === OperatorRole.Supervisor) {
+    this._redirect(result.role);
+  }
+
+  private _redirect(role: OperatorRole): void {
+    if (role === OperatorRole.Admin || role === OperatorRole.Supervisor) {
       this.router.navigate(['/operadores/supervision']);
     } else {
       this.router.navigate(['/operadores/panel']);
     }
   }
-
-  quickLogin(qa: { email: string; password: string }): void {
-    this.email    = qa.email;
-    this.password = qa.password;
-    this.login();
-  }
 }
+

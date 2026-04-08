@@ -111,7 +111,7 @@
       </div>
       <div class="flex justify-end gap-3 pt-2">
         <button type="button" class="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors" (click)="resetForm()">Limpiar</button>
-        <button type="submit" class="rounded-lg bg-blue-600 px-6 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
+        <button type="submit" class="rounded-lg bg-teal-600 px-6 py-2 text-sm font-semibold text-white hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-50 transition-colors\"
           [disabled]="form.invalid || isSubmitting()" [attr.aria-busy]="isSubmitting()">
           @if (isSubmitting()) { Registrando... } @else { Emitir Turno }
         </button>

@@ -1,21 +1,21 @@
 ﻿<!-- RF-02: Kiosko táctil con identificación por DNI -->
-<div class="flex min-h-full flex-col items-center justify-center gap-6 py-8 px-4">
+<div class="flex min-h-full flex-col items-center justify-center gap-4 py-4 px-4">
 
   <!-- PASO 1: INGRESO DE DNI CON TECLADO NUMÉRICO -->
   @if (kioskStep() === 'dni') {
     <div class="w-full max-w-sm">
-      <div class="mb-6 text-center">
-        <p class="text-5xl mb-3"></p>
-        <h1 class="text-3xl font-bold text-gray-900">Ingresa tu DNI</h1>
-        <p class="mt-1 text-base text-gray-500">Usa el teclado para ingresar tus 8 dígitos</p>
+      <div class="mb-4 text-center">
+        <p class="text-4xl mb-2">🏥</p>
+        <h1 class="text-2xl font-bold text-teal-800">Ingresa tu DNI</h1>
+        <p class="mt-1 text-sm text-teal-600">Usa el teclado para ingresar tus 8 dígitos</p>
       </div>
-      <div class="mb-4 flex justify-center gap-2">
+      <div class="mb-3 flex justify-center gap-2">
         @for (box of dniBoxes(); track $index) {
           <div
-            class="flex h-14 w-10 items-center justify-center rounded-xl border-2 text-2xl font-bold transition-all"
-            [class.border-blue-500]="box !== ''"
-            [class.bg-blue-50]="box !== ''"
-            [class.text-blue-900]="box !== ''"
+            class="flex h-12 w-9 items-center justify-center rounded-xl border-2 text-xl font-bold transition-all"
+            [class.border-teal-500]="box !== ''"
+            [class.bg-teal-50]="box !== ''"
+            [class.text-teal-900]="box !== ''"
             [class.border-gray-300]="box === ''"
             [class.bg-gray-50]="box === ''"
             [class.text-gray-300]="box === ''"
@@ -25,29 +25,33 @@
         }
       </div>
       @if (dniError()) {
-        <div class="mb-4 flex items-center gap-2 rounded-xl bg-red-50 px-4 py-3 ring-1 ring-red-200" role="alert">
-          <span class="text-lg"></span>
+        <div class="mb-3 flex items-center gap-2 rounded-xl bg-red-50 px-4 py-2.5 ring-1 ring-red-200" role="alert">
+          <span class="text-base">⚠️</span>
           <p class="text-sm font-medium text-red-700">{{ dniError() }}</p>
         </div>
       }
-      <div class="grid grid-cols-3 gap-3">
+      <div class="grid grid-cols-3 gap-2.5">
         @for (key of keys; track key) {
           <button
             type="button"
             (click)="pressKey(key)"
-            class="flex items-center justify-center rounded-2xl py-5 text-2xl font-bold shadow-sm transition-all active:scale-95 select-none"
-            [class.bg-red-100]="key === ''"
-            [class.text-red-700]="key === ''"
-            [class.bg-emerald-500]="key === ''"
-            [class.text-white]="key === ''"
-            [class.shadow-md]="key === ''"
-            [class.bg-white]="key !== '' && key !== ''"
-            [class.text-gray-900]="key !== '' && key !== ''"
-            [class.ring-1]="key !== '' && key !== ''"
-            [class.ring-gray-200]="key !== '' && key !== ''"
-            [attr.aria-label]="key === '' ? 'Borrar' : key === '' ? 'Buscar' : 'Dígito ' + key"
+            class="flex items-center justify-center rounded-2xl py-4 text-xl font-bold shadow-sm transition-all active:scale-95 select-none"
+            [class.bg-rose-100]="key === '⌫'"
+            [class.text-rose-600]="key === '⌫'"
+            [class.ring-1]="key === '⌫'"
+            [class.ring-rose-200]="key === '⌫'"
+            [class.bg-teal-500]="key === '✓'"
+            [class.text-white]="key === '✓'"
+            [class.shadow-md]="key === '✓'"
+            [class.bg-white]="key !== '⌫' && key !== '✓'"
+            [class.text-gray-800]="key !== '⌫' && key !== '✓'"
+            [class.ring-1]="key !== '⌫' && key !== '✓'"
+            [class.ring-gray-200]="key !== '⌫' && key !== '✓'"
+            [attr.aria-label]="key === '⌫' ? 'Borrar' : key === '✓' ? 'Confirmar' : 'Dígito ' + key"
           >
-            {{ key }}
+            @if (key === '⌫') { ← }
+            @else if (key === '✓') { Buscar }
+            @else { {{ key }} }
           </button>
         }
       </div>
@@ -57,15 +61,15 @@
   <!-- PASO 2: TURNO EMITIDO -->
   @if (kioskStep() === 'done') {
     @if (createdTicket(); as ticket) {
-      <div class="flex w-full max-w-md flex-col items-center gap-5 rounded-3xl bg-white p-8 text-center shadow-xl ring-2 ring-emerald-200">
+      <div class="flex w-full max-w-sm flex-col items-center gap-3 rounded-2xl bg-white p-5 text-center shadow-xl ring-2 ring-emerald-200">
 
         <!-- Bienvenida al paciente -->
         @if (foundPatient(); as patient) {
-          <div class="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500 text-3xl shadow">👋</div>
+          <div class="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-500 text-xl shadow">👋</div>
           <div>
-            <p class="text-sm font-semibold uppercase tracking-widest text-emerald-600">¡Bienvenido/a!</p>
-            <p class="mt-1 text-2xl font-bold text-gray-900">{{ patient.name }}</p>
-            <div class="mt-1 flex flex-wrap justify-center gap-3 text-sm text-gray-500">
+            <p class="text-xs font-semibold uppercase tracking-widest text-emerald-600">¡Bienvenido/a!</p>
+            <p class="mt-0.5 text-lg font-bold text-gray-900">{{ patient.name }}</p>
+            <div class="mt-0.5 flex flex-wrap justify-center gap-2 text-xs text-gray-500">
               <span>DNI {{ patient.dni }}</span>
               @if (patient.age) { <span>{{ patient.age }} años</span> }
               @if (patient.bloodType) { <span>🩸 {{ patient.bloodType }}</span> }
@@ -75,45 +79,50 @@
 
         <!-- Si ya tenía cita activa → mostrar cita existente + pase a pre-consulta -->
         @if (existingTicket(); as existing) {
-          <div class="w-full rounded-xl bg-amber-50 px-5 py-4 ring-1 ring-amber-300">
+          <div class="w-full rounded-lg bg-amber-50 px-4 py-3 ring-1 ring-amber-300">
             <p class="text-xs font-bold uppercase tracking-widest text-amber-700">📋 Cita activa encontrada</p>
-            <p class="mt-1 text-4xl font-extrabold tracking-widest text-amber-800">{{ existing.number }}</p>
-            <p class="mt-1 text-base font-medium text-amber-700">{{ existing.service.name }}</p>
-            <p class="text-sm text-amber-600">Estado: {{ existing.status }}</p>
+            <p class="mt-0.5 text-3xl font-extrabold tracking-widest text-amber-800">{{ existing.number }}</p>
+            <p class="text-sm font-medium text-amber-700">{{ existing.service.name }}</p>
+            <p class="text-xs text-amber-600">Estado: {{ existing.status }}</p>
           </div>
 
-          <div class="w-full rounded-xl bg-blue-50 px-5 py-4 ring-1 ring-blue-300">
+          <div class="w-full rounded-lg bg-blue-50 px-4 py-3 ring-1 ring-blue-300">
             <p class="text-xs font-bold uppercase tracking-widest text-blue-700">🩺 Pase a Pre-consulta</p>
-            <p class="mt-1 text-6xl font-extrabold tracking-widest text-blue-900">{{ ticket.number }}</p>
-            <p class="mt-1 text-lg font-medium text-blue-700">{{ ticket.service.name }}</p>
-            <p class="text-sm text-gray-500">
+            <p class="mt-0.5 text-4xl font-extrabold tracking-widest text-blue-900">{{ ticket.number }}</p>
+            <p class="text-sm font-medium text-blue-700">{{ ticket.service.name }}</p>
+            <p class="text-xs text-gray-500">
               Espera estimada: <strong class="text-gray-800">{{ ticket.estimatedWaitMinutes }} min</strong>
             </p>
           </div>
         } @else {
           <!-- Sin cita previa → reserva automática de admisión -->
-          <div class="w-full rounded-xl bg-emerald-50 px-5 py-4 ring-1 ring-emerald-300">
+          <div class="w-full rounded-lg bg-emerald-50 px-4 py-2 ring-1 ring-emerald-300">
             <p class="text-xs font-bold uppercase tracking-widest text-emerald-700">🏥 Reserva de Admisión</p>
-            <p class="mt-1 text-sm text-gray-500">Tu turno ha sido generado automáticamente</p>
+            <p class="text-xs text-gray-500">Tu turno ha sido generado automáticamente</p>
           </div>
           <div>
-            <p class="text-sm font-semibold uppercase tracking-widest text-emerald-600">Tu número de turno</p>
-            <p class="mt-1 text-8xl font-extrabold tracking-widest text-gray-900">{{ ticket.number }}</p>
-            <p class="mt-2 text-xl font-medium text-gray-700">{{ ticket.service.name }}</p>
-            <p class="mt-1 text-base text-gray-500">
+            <p class="text-xs font-semibold uppercase tracking-widest text-emerald-600">Tu número de turno</p>
+            <p class="mt-0.5 text-6xl font-extrabold tracking-widest text-gray-900">{{ ticket.number }}</p>
+            <p class="mt-1 text-base font-medium text-gray-700">{{ ticket.service.name }}</p>
+            <p class="text-sm text-gray-500">
               Espera estimada: <strong class="text-gray-800">{{ ticket.estimatedWaitMinutes }} min</strong>
             </p>
           </div>
         }
 
         @if (qrUrl(); as qr) {
-          <img [src]="qr" alt="QR del turno" class="h-48 w-48 rounded-2xl border-2 border-gray-200 shadow-sm" />
-          <p class="text-sm text-gray-500">Escanea el QR para seguir tu turno</p>
+          <img [src]="qr" alt="QR del turno" class="h-28 w-28 rounded-xl border-2 border-gray-200 shadow-sm" />
+          <p class="text-xs text-gray-500">Escanea el QR para seguir tu turno</p>
         }
+
+        <p class="text-xs text-gray-400">
+          Volviendo al inicio en
+          <strong class="text-gray-600">{{ countdown() }}s</strong>
+        </p>
 
         <button
           type="button"
-          class="mt-1 w-full rounded-2xl bg-blue-600 py-4 text-xl font-bold text-white shadow hover:bg-blue-700 active:scale-95"
+          class="mt-1 w-full rounded-xl bg-teal-600 py-3 text-base font-bold text-white shadow hover:bg-teal-700 active:scale-95"
           (click)="reset()"
         >
           🔄 Nuevo paciente

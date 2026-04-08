@@ -1,84 +1,130 @@
-<!-- RF-37 — Login de operador -->
+<!-- RF-37 — Login de operador: selector de perfil + formulario opcional -->
 <div class="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 p-4">
 
-  <div class="w-full max-w-md">
+  <div class="w-full max-w-2xl">
 
     <!-- Logo + título -->
     <div class="mb-8 text-center">
-      <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600 text-3xl shadow-lg">
+      <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-teal-600 text-3xl shadow-lg">
         🏥
       </div>
       <h1 class="text-2xl font-bold text-white">MediTurno Clínica</h1>
-      <p class="mt-1 text-sm text-slate-400">Sistema de gestión de colas</p>
+      <p class="mt-1 text-sm text-slate-400">Selecciona tu perfil para continuar</p>
     </div>
 
-    <!-- Card de login -->
-    <div class="rounded-2xl bg-white p-8 shadow-2xl">
+    <!-- ── SELECTOR DE PERFIL (modo demo) ── -->
+    @if (!showCredentialsForm()) {
 
-      <h2 class="mb-6 text-lg font-semibold text-gray-900">Iniciar sesión</h2>
+      <!-- Grid de perfiles -->
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        @for (op of profileOperators(); track op.id) {
+          <button
+            type="button"
+            (click)="loginAs(op)"
+            class="group flex items-center gap-4 rounded-2xl bg-white/10 p-5 text-left ring-1 ring-white/10 backdrop-blur-sm transition-all hover:bg-white/20 hover:ring-white/30 active:scale-[.98]"
+          >
+            <!-- Avatar -->
+            <div
+              class="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl text-2xl font-bold text-white shadow-md"
+              [class.bg-teal-600]="op.role === OperatorRole.Admin"
+              [class.bg-indigo-600]="op.role === OperatorRole.Supervisor"
+              [class.bg-emerald-600]="op.role === OperatorRole.Operador"
+            >
+              {{ op.name[0] }}
+            </div>
 
-      <!-- Error -->
-      @if (error()) {
-        <div class="mb-4 flex items-center gap-2 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700 ring-1 ring-red-200" role="alert">
-          <span>⚠️</span>
-          <span>{{ error() }}</span>
-        </div>
-      }
+            <!-- Info -->
+            <div class="min-w-0 flex-1">
+              <p class="truncate text-base font-bold text-white">{{ op.name }}</p>
+              <div class="mt-1 flex items-center gap-2">
+                <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1"
+                  [class]="roleCss[op.role]">
+                  {{ roleIcons[op.role] }} {{ roleLabels[op.role] }}
+                </span>
+                <span class="flex items-center gap-1 text-xs text-slate-400">
+                  <span class="inline-block h-2 w-2 rounded-full" [class]="statusDot[op.status]"></span>
+                  {{ statusLabels[op.status] }}
+                </span>
+              </div>
+            </div>
 
-      <!-- Formulario -->
-      <form (ngSubmit)="login()" class="flex flex-col gap-4">
-
-        <div>
-          <label class="mb-1 block text-xs font-medium text-gray-600" for="email">
-            Correo electrónico
-          </label>
-          <input
-            id="email" name="email" type="email" required autocomplete="email"
-            [(ngModel)]="email"
-            placeholder="operador@mediturno.pe"
-            class="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100" />
-        </div>
-
-        <div>
-          <label class="mb-1 block text-xs font-medium text-gray-600" for="password">
-            Contraseña
-          </label>
-          <input
-            id="password" name="password" type="password" required autocomplete="current-password"
-            [(ngModel)]="password"
-            placeholder="••••••••"
-            class="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100" />
-        </div>
-
-        <button
-          type="submit"
-          [disabled]="loading()"
-          class="mt-2 w-full rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:opacity-60">
-          {{ loading() ? 'Ingresando…' : 'Ingresar' }}
-        </button>
-
-      </form>
-
-      <!-- Acceso rápido (modo prototipo) -->
-      <div class="mt-6 border-t border-gray-100 pt-6">
-        <p class="mb-3 text-center text-xs font-medium text-gray-400">Acceso rápido (demo)</p>
-        <div class="grid grid-cols-3 gap-2">
-          @for (qa of quickAccess; track qa.email) {
-            <button
-              type="button"
-              (click)="quickLogin(qa)"
-              class="flex flex-col items-center gap-1 rounded-xl border border-gray-200 bg-gray-50 px-2 py-3 text-center transition hover:border-blue-300 hover:bg-blue-50">
-              <span class="text-xl">{{ roleIcon[qa.role] }}</span>
-              <span class="text-[10px] font-semibold text-gray-700">{{ qa.label }}</span>
-            </button>
-          }
-        </div>
+            <!-- Flecha -->
+            <span class="flex-shrink-0 text-slate-400 transition-transform group-hover:translate-x-1 group-hover:text-white">
+              →
+            </span>
+          </button>
+        }
       </div>
 
-    </div>
+      <!-- Link para abrir el formulario -->
+      <p class="mt-6 text-center">
+        <button
+          type="button"
+          (click)="showCredentialsForm.set(true)"
+          class="text-xs text-slate-400 underline underline-offset-2 transition hover:text-slate-200">
+          Ingresar con correo y contraseña
+        </button>
+      </p>
+    }
+
+    <!-- ── FORMULARIO DE CREDENCIALES (modo avanzado) ── -->
+    @if (showCredentialsForm()) {
+      <div class="rounded-2xl bg-white p-8 shadow-2xl">
+
+        <div class="mb-6 flex items-center justify-between">
+          <h2 class="text-lg font-semibold text-gray-900">Iniciar sesión</h2>
+          <button type="button" (click)="showCredentialsForm.set(false)"
+            class="text-xs text-gray-400 transition hover:text-gray-700">
+            ← Volver a perfiles
+          </button>
+        </div>
+
+        <!-- Error -->
+        @if (error()) {
+          <div class="mb-4 flex items-center gap-2 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700 ring-1 ring-red-200" role="alert">
+            <span>⚠️</span>
+            <span>{{ error() }}</span>
+          </div>
+        }
+
+        <!-- Formulario -->
+        <form (ngSubmit)="login()" class="flex flex-col gap-4">
+
+          <div>
+            <label class="mb-1 block text-xs font-medium text-gray-600" for="email">
+              Correo electrónico
+            </label>
+            <input
+              id="email" name="email" type="email" required autocomplete="email"
+              [(ngModel)]="email"
+              placeholder="operador@mediturno.pe"
+              class="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100" />
+          </div>
+
+          <div>
+            <label class="mb-1 block text-xs font-medium text-gray-600" for="password">
+              Contraseña
+            </label>
+            <input
+              id="password" name="password" type="password" required autocomplete="current-password"
+              [(ngModel)]="password"
+              placeholder="••••••••"
+              class="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100" />
+          </div>
+
+          <button
+            type="submit"
+            [disabled]="loading()"
+            class="mt-2 w-full rounded-xl bg-teal-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-700 disabled:opacity-60">
+            {{ loading() ? 'Ingresando…' : 'Ingresar' }}
+          </button>
+
+        </form>
+      </div>
+    }
 
     <p class="mt-6 text-center text-xs text-slate-500">
-      Módulo 3 — Operadores (RF-37)
+      MediTurno — Módulo Operadores (RF-37) · Demo
     </p>
 
   </div>
