@@ -17,49 +17,9 @@
     <!-- Navegación -->
     <nav class="flex-1 space-y-0.5 overflow-y-auto px-2 py-4">
 
-      <!-- Sección: Tickets -->
+      <!-- Sección: Canales de entrada -->
       @if (!sidebarCollapsed()) {
         <p class="px-3 pb-2 pt-2 text-[10px] font-semibold uppercase tracking-widest text-blue-400">
-          Gestión de Pacientes
-        </p>
-      }
-
-      <a
-        routerLink="/tickets/lista"
-        routerLinkActive="!bg-blue-600 !text-white"
-        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-blue-200 transition-colors hover:bg-blue-900 hover:text-white"
-        ariaCurrentWhenActive="page"
-        title="Cola de pacientes"
-      >
-        <span class="flex-shrink-0 text-base">📄</span>
-        @if (!sidebarCollapsed()) { <span>Cola de pacientes</span> }
-      </a>
-
-      <hr class="my-3 border-blue-950/60" />
-
-      <!-- Sección: Ventanillas / Módulos -->
-      @if (!sidebarCollapsed()) {
-        <p class="px-3 pb-2 text-[10px] font-semibold uppercase tracking-widest text-blue-400">
-          Ventanillas
-        </p>
-      }
-
-      <a
-        routerLink="/ventanillas/dashboard"
-        routerLinkActive="!bg-blue-600 !text-white"
-        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-blue-200 transition-colors hover:bg-blue-900 hover:text-white"
-        ariaCurrentWhenActive="page"
-        title="Dashboard de ventanillas (RF-29)"
-      >
-        <span class="flex-shrink-0 text-base">🪟</span>
-        @if (!sidebarCollapsed()) { <span>Dashboard módulos</span> }
-      </a>
-
-      <hr class="my-3 border-blue-950/60" />
-
-      <!-- Sección: Canales -->
-      @if (!sidebarCollapsed()) {
-        <p class="px-3 pb-2 text-[10px] font-semibold uppercase tracking-widest text-blue-400">
           Canales de entrada
         </p>
       }
@@ -99,7 +59,27 @@
 
       <hr class="my-3 border-blue-950/60" />
 
-      <!-- Sección: Módulo 3 — Operadores -->
+      <!-- Sección: Gestión de Pacientes -->
+      @if (!sidebarCollapsed()) {
+        <p class="px-3 pb-2 text-[10px] font-semibold uppercase tracking-widest text-blue-400">
+          Gestión de Pacientes
+        </p>
+      }
+
+      <a
+        routerLink="/tickets/lista"
+        routerLinkActive="!bg-blue-600 !text-white"
+        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-blue-200 transition-colors hover:bg-blue-900 hover:text-white"
+        ariaCurrentWhenActive="page"
+        title="Cola de pacientes"
+      >
+        <span class="flex-shrink-0 text-base">📄</span>
+        @if (!sidebarCollapsed()) { <span>Cola de pacientes</span> }
+      </a>
+
+      <hr class="my-3 border-blue-950/60" />
+
+      <!-- Sección: Operadores -->
       @if (!sidebarCollapsed()) {
         <p class="px-3 pb-2 text-[10px] font-semibold uppercase tracking-widest text-blue-400">
           Operadores
@@ -137,6 +117,26 @@
       >
         <span class="flex-shrink-0 text-base">🔑</span>
         @if (!sidebarCollapsed()) { <span>Iniciar sesión</span> }
+      </a>
+
+      <hr class="my-3 border-blue-950/60" />
+
+      <!-- Sección: Ventanillas / Módulos -->
+      @if (!sidebarCollapsed()) {
+        <p class="px-3 pb-2 text-[10px] font-semibold uppercase tracking-widest text-blue-400">
+          Ventanillas
+        </p>
+      }
+
+      <a
+        routerLink="/ventanillas/dashboard"
+        routerLinkActive="!bg-blue-600 !text-white"
+        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-blue-200 transition-colors hover:bg-blue-900 hover:text-white"
+        ariaCurrentWhenActive="page"
+        title="Dashboard de ventanillas (RF-29)"
+      >
+        <span class="flex-shrink-0 text-base">🪟</span>
+        @if (!sidebarCollapsed()) { <span>Dashboard módulos</span> }
       </a>
 
       <hr class="my-3 border-blue-950/60" />
@@ -269,6 +269,17 @@
       >
         <span class="flex-shrink-0 text-base">⚙️</span>
         @if (!sidebarCollapsed()) { <span>Configuración</span> }
+      </a>
+
+      <a
+        routerLink="/configuracion/prioridades"
+        routerLinkActive="!bg-blue-600 !text-white"
+        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-blue-200 transition-colors hover:bg-blue-900 hover:text-white"
+        ariaCurrentWhenActive="page"
+        title="Maestro de Prioridades"
+      >
+        <span class="flex-shrink-0 text-base">🏷️</span>
+        @if (!sidebarCollapsed()) { <span>Prioridades</span> }
       </a>
 
     </nav>

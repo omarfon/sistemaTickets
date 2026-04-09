@@ -1,0 +1,247 @@
+<div class="mx-auto max-w-3xl">
+
+  <!-- Cabecera -->
+  <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Maestro de Prioridades</h1>
+      <p class="mt-1 text-sm text-gray-500">
+        Crea, edita y gestiona los niveles de prioridad para la atención de pacientes
+      </p>
+    </div>
+    <button
+      type="button"
+      (click)="openNew()"
+      class="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 active:scale-95"
+    >
+      ➕ Nueva prioridad
+    </button>
+  </div>
+
+  <!-- Feedback -->
+  @if (message()) {
+    <div class="mb-4 rounded-xl px-4 py-3 text-sm font-medium ring-1"
+      [class.bg-emerald-50]="message()!.ok"
+      [class.text-emerald-700]="message()!.ok"
+      [class.ring-emerald-200]="message()!.ok"
+      [class.bg-red-50]="!message()!.ok"
+      [class.text-red-700]="!message()!.ok"
+      [class.ring-red-200]="!message()!.ok"
+      role="status">
+      {{ message()!.text }}
+    </div>
+  }
+
+  <!-- Formulario de creación/edición -->
+  @if (showForm()) {
+    <div class="mb-6 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
+      <h2 class="mb-4 text-lg font-semibold text-gray-800">
+        {{ editingId() ? '✏️ Editar prioridad' : '➕ Nueva prioridad' }}
+      </h2>
+
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <!-- Código -->
+        <div class="flex flex-col gap-1.5">
+          <label for="priCode" class="text-sm font-medium text-gray-700">Código</label>
+          <input
+            id="priCode"
+            type="text"
+            [(ngModel)]="formCode"
+            placeholder="Ej: EMERGENCIA"
+            class="rounded-lg border border-gray-300 px-3 py-2 text-sm uppercase focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+            maxlength="20"
+          />
+          <p class="text-xs text-gray-400">Identificador único (se convierte a mayúsculas)</p>
+        </div>
+
+        <!-- Nombre visible -->
+        <div class="flex flex-col gap-1.5">
+          <label for="priLabel" class="text-sm font-medium text-gray-700">Nombre</label>
+          <input
+            id="priLabel"
+            type="text"
+            [(ngModel)]="formLabel"
+            placeholder="Ej: Emergencia"
+            class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+          />
+        </div>
+
+        <!-- Descripción -->
+        <div class="flex flex-col gap-1.5 sm:col-span-2">
+          <label for="priDesc" class="text-sm font-medium text-gray-700">Descripción</label>
+          <input
+            id="priDesc"
+            type="text"
+            [(ngModel)]="formDescription"
+            placeholder="Descripción corta de la prioridad"
+            class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+          />
+        </div>
+
+        <!-- Peso -->
+        <div class="flex flex-col gap-1.5">
+          <label for="priWeight" class="text-sm font-medium text-gray-700">Peso (orden)</label>
+          <input
+            id="priWeight"
+            type="number"
+            [(ngModel)]="formWeight"
+            min="1"
+            max="100"
+            class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+          />
+          <p class="text-xs text-gray-400">Mayor peso = mayor prioridad de atención</p>
+        </div>
+
+        <!-- Icono -->
+        <div class="flex flex-col gap-1.5">
+          <label for="priIcon" class="text-sm font-medium text-gray-700">Icono</label>
+          <input
+            id="priIcon"
+            type="text"
+            [(ngModel)]="formIcon"
+            placeholder="🟢"
+            class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+            maxlength="4"
+          />
+        </div>
+
+        <!-- Color -->
+        <div class="flex flex-col gap-1.5 sm:col-span-2">
+          <label class="text-sm font-medium text-gray-700">Color del badge</label>
+          <div class="flex flex-wrap gap-2">
+            @for (opt of colorOptions; track opt.value) {
+              <button
+                type="button"
+                (click)="formColor = opt.value; formIcon = opt.dot"
+                class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold ring-1 transition active:scale-95"
+                [class]="opt.value"
+                [class.ring-2]="formColor === opt.value"
+                [class.ring-blue-500]="formColor === opt.value"
+              >
+                {{ opt.dot }} {{ opt.label }}
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- Activa -->
+        <div class="flex items-center gap-3 sm:col-span-2">
+          <input
+            id="priActive"
+            type="checkbox"
+            [(ngModel)]="formIsActive"
+            class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          />
+          <label for="priActive" class="text-sm font-medium text-gray-700">Prioridad activa</label>
+        </div>
+      </div>
+
+      <!-- Acciones del formulario -->
+      <div class="mt-5 flex gap-3">
+        <button
+          type="button"
+          (click)="save()"
+          class="flex-1 rounded-xl bg-blue-600 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700 active:scale-95"
+        >
+          {{ editingId() ? '💾 Guardar cambios' : '✅ Crear prioridad' }}
+        </button>
+        <button
+          type="button"
+          (click)="cancel()"
+          class="rounded-xl border border-gray-300 px-6 py-3 text-sm font-semibold text-gray-600 transition hover:bg-gray-100 active:scale-95"
+        >
+          Cancelar
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Lista de prioridades -->
+  <div class="flex flex-col gap-3">
+    @for (p of priorityService.priorities(); track p.id) {
+      <div class="flex items-center gap-4 rounded-2xl bg-white px-5 py-4 shadow-sm ring-1 ring-gray-200 transition"
+        [class.opacity-50]="!p.isActive">
+
+        <!-- Icono + peso -->
+        <div class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl text-2xl"
+          [class]="p.color">
+          {{ p.icon }}
+        </div>
+
+        <!-- Info -->
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2">
+            <p class="text-base font-bold text-gray-900">{{ p.label }}</p>
+            <span class="rounded-md bg-gray-100 px-2 py-0.5 text-[10px] font-mono font-semibold text-gray-500">
+              {{ p.code }}
+            </span>
+            <span class="rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700">
+              Peso: {{ p.weight }}
+            </span>
+            @if (!p.isActive) {
+              <span class="rounded-md bg-gray-200 px-2 py-0.5 text-[10px] font-semibold text-gray-600">
+                Inactiva
+              </span>
+            }
+          </div>
+          <p class="mt-0.5 text-sm text-gray-500 truncate">{{ p.description }}</p>
+        </div>
+
+        <!-- Acciones -->
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            (click)="toggleActive(p)"
+            class="rounded-lg px-2.5 py-1.5 text-xs font-medium transition"
+            [class.bg-emerald-100]="p.isActive"
+            [class.text-emerald-700]="p.isActive"
+            [class.hover:bg-emerald-200]="p.isActive"
+            [class.bg-gray-100]="!p.isActive"
+            [class.text-gray-600]="!p.isActive"
+            [class.hover:bg-gray-200]="!p.isActive"
+            [title]="p.isActive ? 'Desactivar' : 'Activar'"
+          >
+            {{ p.isActive ? '✅' : '⬜' }}
+          </button>
+          <button
+            type="button"
+            (click)="openEdit(p)"
+            class="rounded-lg bg-blue-50 px-2.5 py-1.5 text-xs font-medium text-blue-700 transition hover:bg-blue-100"
+            title="Editar"
+          >
+            ✏️
+          </button>
+          <button
+            type="button"
+            (click)="delete(p)"
+            class="rounded-lg bg-red-50 px-2.5 py-1.5 text-xs font-medium text-red-700 transition hover:bg-red-100"
+            title="Eliminar"
+          >
+            🗑️
+          </button>
+        </div>
+      </div>
+    } @empty {
+      <div class="flex flex-col items-center gap-3 rounded-2xl bg-gray-50 py-12 text-center ring-1 ring-gray-200">
+        <span class="text-4xl">📋</span>
+        <p class="text-sm text-gray-400">No hay prioridades configuradas</p>
+        <button
+          type="button"
+          (click)="openNew()"
+          class="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
+        >
+          ➕ Crear primera prioridad
+        </button>
+      </div>
+    }
+  </div>
+
+  <!-- Info -->
+  <div class="mt-6 flex gap-3 rounded-xl bg-blue-50 px-4 py-3 ring-1 ring-blue-200">
+    <span>💡</span>
+    <p class="text-sm text-blue-800">
+      Las prioridades determinan el orden de atención. Un peso mayor significa que el paciente será atendido antes. 
+      Las prioridades inactivas no aparecerán como opción al generar tickets.
+    </p>
+  </div>
+
+</div>
